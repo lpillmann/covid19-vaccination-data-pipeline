@@ -17,7 +17,7 @@ Setup a new connection with **Conn Id** as `redshift` and **Conn Type** as `Post
 
 ## Ad-hoc scripts
 ### Extract population data
-Small CSV is extracted from a public GitHub repository.
+Small CSV is extracted from a public GitHub repository and loaded into the project's S3 bucket.
 ```
 bash scripts/extract/population/run.sh
 ```
