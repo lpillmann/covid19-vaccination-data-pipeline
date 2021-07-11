@@ -1,4 +1,5 @@
-create table if not exists raw_vaccinations (
+drop table if exists raw_vaccinations;
+create table raw_vaccinations (
     document_id text,
     paciente_id text,
     paciente_idade integer,
