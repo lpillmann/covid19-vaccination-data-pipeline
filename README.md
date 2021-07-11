@@ -1,6 +1,18 @@
 # covid19-vaccination-data-pipeline
 Main repository for Udacity Data Engineering Nanodegree Capstone Project - COVID-19 Vaccination in Brazil
 
+## Python scripts setup
+Create virtual environment and install dependencies
+```bash
+python3 -m venv venv
+source venv/bin/activate
+# main dependencies
+pip install -r requirements.txt
+# development dependencies
+pip install -r requirements-dev.txt
+deactivate
+```
+
 ## Airflow setup
 Airflow was configured following [this reference](https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html#running-airflow).
 
