@@ -44,7 +44,7 @@
 version: '3'
 x-airflow-common:
   &airflow-common
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.1.1}
+  image: ${AIRFLOW_IMAGE_NAME:-lpillmann/airflow:0.0.1}
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -58,6 +58,11 @@ x-airflow-common:
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__WEBSERVER__RELOAD_ON_PLUGIN_CHANGE: 'true'
     AIRFLOW_CONN_REDSHIFT: postgres://${UDACITY_REDSHIFT_DB_USER}:${UDACITY_REDSHIFT_DB_PASSWORD}@${UDACITY_REDSHIFT_HOST}:${UDACITY_REDSHIFT_DB_PORT}/${UDACITY_REDSHIFT_DB_NAME}
+    AWS_ACCESS_KEY_ID: ${UDACITY_AWS_KEY}
+    AWS_SECRET_ACCESS_KEY: ${UDACITY_AWS_SECRET}
+    AWS_DEFAULT_REGION: ${UDACITY_AWS_REGION}
+    UDACITY_AWS_PROFILE: ${UDACITY_AWS_PROFILE}
+    UDACITY_CAPSTONE_PROJECT_BUCKET: ${UDACITY_CAPSTONE_PROJECT_BUCKET}
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
