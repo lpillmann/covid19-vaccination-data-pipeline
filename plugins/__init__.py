@@ -10,5 +10,5 @@ class UdacityPlugin(AirflowPlugin):
     operators = [
         operators.CopyCsvToRedshiftOperator,
         operators.RedshiftQueryOperator,
-        operators.DataQualityOperator
+        operators.DataQualityOperator,
     ]

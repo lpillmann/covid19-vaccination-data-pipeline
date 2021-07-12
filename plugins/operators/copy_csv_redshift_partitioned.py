@@ -1,6 +1,7 @@
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.models import BaseOperator
 
+
 class CopyCsvToRedshiftPartionedOperator(BaseOperator):
     """
     Load single partition for S3 and replace contents in target table
@@ -10,22 +11,23 @@ class CopyCsvToRedshiftPartionedOperator(BaseOperator):
 
         where `year_month` is the partition column name and `2021-01-01` is the partition column value
     """
-    
-    ui_color = '#fcc379'
+
+    ui_color = "#fcc379"
 
     def __init__(
-            self,
-            conn_id,
-            table_name,
-            s3_from_path,
-            iam_role,
-            region,
-            compression,
-            temporary_table_name,
-            primary_key,
-            partition_column_name,
-            partition_column_value,
-            **kwargs):
+        self,
+        conn_id,
+        table_name,
+        s3_from_path,
+        iam_role,
+        region,
+        compression,
+        temporary_table_name,
+        primary_key,
+        partition_column_name,
+        partition_column_value,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.conn_id = conn_id
         self.table_name = table_name
@@ -37,11 +39,10 @@ class CopyCsvToRedshiftPartionedOperator(BaseOperator):
         self.primary_key = primary_key
         self.partition_column_name = partition_column_name
         self.partition_column_value = partition_column_value
-    
+
     @property
     def merge_query(self):
-        return (
-            f"""
+        return f"""
             /* Merge operation using tmp table as source and raw table as target */
             
             -- Load temporary table with whole current month of data
@@ -73,15 +74,13 @@ class CopyCsvToRedshiftPartionedOperator(BaseOperator):
             -- Empty the temporary table
             truncate table {self.temporary_table_name};
             """
-        )
 
     def execute(self, context):
-        self.log.info('CopyCsvToRedshiftPartionedOperator: Starting execution for table {}'.format(self.table_name))
+        self.log.info(
+            "CopyCsvToRedshiftPartionedOperator: Starting execution for table {}".format(
+                self.table_name
+            )
+        )
         redshift_hook = PostgresHook(postgres_conn_id=self.conn_id)
         redshift_hook.run(self.merge_query)
-        self.log.info('CopyCsvToRedshiftPartionedOperator: Done')
-
-
-
-
-
+        self.log.info("CopyCsvToRedshiftPartionedOperator: Done")
