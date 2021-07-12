@@ -53,8 +53,6 @@ docker-compose up
 
 Open UI at [http://localhost:8080/home](http://localhost:8080/home) using login credentials as user `airflow` and password `airflow`.
 
-Setup a new connection with **Conn Id** as `redshift` and **Conn Type** as `Postgres` with the credentials of your cluster.
-
 > Note 1: this Airflow setup is for development purposes. For production deployment some additional configurations would be needed (see [this reference](https://airflow.apache.org/docs/apache-airflow/stable/production-deployment.html)).
 
 > Note 2: some Airflow environment variables were customized in `docker-compose.yaml`, namely:
