@@ -9,6 +9,6 @@ class UdacityPlugin(AirflowPlugin):
     name = "udacity_plugin"
     operators = [
         operators.CopyCsvToRedshiftOperator,
-        operators.DropCreateTableOperator,
+        operators.RedshiftQueryOperator,
         operators.DataQualityOperator
     ]
