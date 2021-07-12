@@ -44,7 +44,7 @@ Main repository for Udacity Data Engineering Nanodegree Capstone Project - COVID
 
 
 ## Airflow setup
-Airflow was configured following [this reference](https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html#running-airflow).
+Airflow was configured using Docker following [this reference](https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html#running-airflow).
 
 Start Airflow services:
 ```bash
