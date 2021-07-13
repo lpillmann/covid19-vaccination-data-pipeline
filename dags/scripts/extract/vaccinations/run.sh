@@ -2,7 +2,7 @@
 
 # Build tap and target configuration JSON files and run extraction
 # Usage: 
-#    - Extract and load empty destination:     `bash run.sh 2021-01-01 SC`
+#    - Extract and append to destination:     `bash run.sh 2021-01-01 SC`
 #    - Extract and replace existing contents:  `bash run.sh 2021-01-01 SC replace`
 
 set -e
@@ -23,11 +23,18 @@ s3_prefix="$BASE_BUCKET_PATH/year_month=$YEAR_MONTH/estabelecimento_uf=$STATE_AB
 # Setup paths
 root_path="/opt/airflow"
 extract_vaccinations_path="$root_path/dags/scripts/extract/vaccinations"
-tap_config_json_filepath="$extract_vaccinations_path/opendatasus_config.json"
-target_config_json_filepath="$extract_vaccinations_path/s3_csv_config.json"
-target_config_json_filepath="$extract_vaccinations_path/s3_csv_config.json"
+
+# Catalog and state won't change across tasks
 catalog_json_filepath="$extract_vaccinations_path/catalog.json"
 state_json_filepath="$extract_vaccinations_path/state.json"
+
+# Configs will vary across tasks
+config_path="$extract_vaccinations_path/$STATE_ABBREV"
+## Make sure folder exists
+mkdir -p "$config_path"
+tap_config_json_filepath="$config_path/opendatasus_config.json"
+target_config_json_filepath="$config_path/s3_csv_config.json"
+target_config_json_filepath="$config_path/s3_csv_config.json"
 
 # Build configuration files
 tap_config_json=$( jq -n \
