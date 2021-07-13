@@ -66,8 +66,7 @@ with DAG(
 
     # Extract data from different sources to S3
 
-    # Open Data SUS (vaccinations)
-    # Paralelize extraction by Brazilian states for current month.
+    # Open Data SUS (vaccinations) - paralelize extraction by Brazilian states
     extraction_tasks = []
     for state_abbrev in STATE_ABBREVIATIONS:
         script_path = f"{SCRIPTS_BASE_PATH}/extract/vaccinations/run.sh"
@@ -121,20 +120,33 @@ with DAG(
         compression=None,
     )
 
-    copy_vaccinations_to_redshift = CopyCsvToRedshiftPartionedOperator(
-        task_id="copy_vaccinations_data",
+    # Load all history
+    copy_vaccinations_to_redshift = CopyCsvToRedshiftOperator(
+        task_id='copy_vaccinations_data',
         dag=dag,
-        conn_id="redshift",
-        table_name="raw_vaccinations",
-        s3_from_path="s3://udacity-capstone-project-opendatasus/raw/vaccinations",
-        iam_role="arn:aws:iam::301426828416:role/dwhRole",
-        region="us-west-2",
-        compression="gzip",
-        temporary_table_name="raw_vaccinations_tmp",
-        primary_key="document_id",
-        partition_column_name="year_month",
-        partition_column_value=CURRENT_YEAR_MONTH,
+        conn_id='redshift',
+        table_name='raw_vaccinations',
+        s3_from_path='s3://udacity-capstone-project-opendatasus/raw/vaccinations',
+        iam_role='arn:aws:iam::301426828416:role/dwhRole',
+        region='us-west-2',
+        compression='gzip',
     )
+
+    ## Partitioned load (only current month)
+    # copy_vaccinations_to_redshift = CopyCsvToRedshiftPartionedOperator(
+    #     task_id="copy_vaccinations_data",
+    #     dag=dag,
+    #     conn_id="redshift",
+    #     table_name="raw_vaccinations",
+    #     s3_from_path="s3://udacity-capstone-project-opendatasus/raw/vaccinations",
+    #     iam_role="arn:aws:iam::301426828416:role/dwhRole",
+    #     region="us-west-2",
+    #     compression="gzip",
+    #     temporary_table_name="raw_vaccinations_tmp",
+    #     primary_key="document_id",
+    #     partition_column_name="year_month",
+    #     partition_column_value=CURRENT_YEAR_MONTH,
+    # )
 
     # Transform into dimensional model
     rebuild_staging_vaccinations = RedshiftQueryOperator(
