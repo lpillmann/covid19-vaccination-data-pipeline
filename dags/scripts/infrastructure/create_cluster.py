@@ -139,7 +139,8 @@ def configure_security_group(config, vpc_id):
 
 def main():
     config = configparser.ConfigParser()
-    config.read_file(open("scripts/infrastructure/redshift.cfg"))
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    config.read_file(open(os.path.join(dir_path, "redshift.cfg")))
 
     role_arn = create_iam_resourceole(config)
     cluster_properties = create_cluster(config, role_arn)

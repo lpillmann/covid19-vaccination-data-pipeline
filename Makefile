@@ -4,11 +4,11 @@ install-infra:
 	python3 -m venv venv/infra
 	venv/infra/bin/pip install -r requirements.txt
 
-create-cluster:
-	venv/infra/bin/python plugins/scripts/infrastructure/create_cluster.py
+create-cluster: install-infra
+	venv/infra/bin/python dags/scripts/infrastructure/create_cluster.py
 
 delete-cluster:
-	venv/infra/bin/python plugins/scripts/infrastructure/delete_cluster.py
+	venv/infra/bin/python dags/scripts/infrastructure/delete_cluster.py
 
 # Airflow
 image:
