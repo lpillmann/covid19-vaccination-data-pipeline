@@ -33,9 +33,9 @@ def main():
     config = configparser.ConfigParser()
     dir_path = os.path.dirname(os.path.realpath(__file__))
     config.read_file(open(os.path.join(dir_path, "redshift.cfg")))
-    
+
     delete_cluster(config)
-    
+
     aws_console_url = f"https://{AWS_REGION}.console.aws.amazon.com/redshiftv2/home?region={AWS_REGION}#clusters"
     print(f"Please confirm deletion using AWS Console:\n{aws_console_url}")
 

@@ -15,9 +15,7 @@ from operators import (
 )
 
 SCRIPTS_BASE_PATH = "/opt/airflow/dags/scripts"
-CURRENT_YEAR_MONTH = datetime.now().strftime(
-    "%Y-%m-01"
-)  # TODO: pass it using Airflow context
+CURRENT_YEAR_MONTH = datetime.now().strftime("%Y-%m-01")
 STATE_ABBREVIATIONS = ["AC", "MA", "PE", "PR", "RS", "SC"]
 
 # These args will get passed on to each operator
@@ -68,7 +66,7 @@ with DAG(
 
     # Extract data from different sources to S3
 
-    # Open Data SUS (vaccinations) 
+    # Open Data SUS (vaccinations)
     # Paralelize extraction by Brazilian states for current month.
     extraction_tasks = []
     for state_abbrev in STATE_ABBREVIATIONS:
@@ -80,7 +78,7 @@ with DAG(
             bash_command=f"{script_path} {month_year} {state_abbrev} replace ",
         )
         extraction_tasks.append(extract_opendatasus)
-    
+
     # Population data from curated source (CSV hosted in GitHub)
     extract_population = BashOperator(
         task_id=f"extract_population",
