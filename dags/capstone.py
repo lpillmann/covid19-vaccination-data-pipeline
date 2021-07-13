@@ -14,9 +14,11 @@ from operators import (
     DataQualityOperator,
 )
 
+SCRIPTS_BASE_PATH = "/opt/airflow/dags/scripts"
 CURRENT_YEAR_MONTH = datetime.now().strftime(
     "%Y-%m-01"
 )  # TODO: pass it using Airflow context
+STATE_ABBREVIATIONS = ["AC", "MA", "PE", "PR", "RS", "SC"]
 
 # These args will get passed on to each operator
 # You can override them on a per-task basis during operator initialization
@@ -56,6 +58,7 @@ with DAG(
     create_raw_tables_completed = DummyOperator(
         task_id="create_raw_tables_completed", dag=dag
     )
+    extraction_completed = DummyOperator(task_id="extraction_completed", dag=dag)
     load_raw_completed = DummyOperator(task_id="load_raw_completed", dag=dag)
     rebuild_completed = DummyOperator(task_id="rebuild_completed", dag=dag)
     data_quality_checks_completed = DummyOperator(
@@ -63,179 +66,196 @@ with DAG(
     )
     execution_completed = DummyOperator(task_id="execution_completed", dag=dag)
 
-    # Extract from sources to S3
-    extract_opendatasus = BashOperator(
-        task_id="extract_opendatasus",
-        dag=dag,
-        bash_command="/opt/airflow/dags/scripts/extract/vaccinations/run.sh 2021-07-01 SC replace ",
-    )
+    # Extract data from different sources to S3
+
+    # Open Data SUS (vaccinations) 
+    # Paralelize extraction by Brazilian states for current month.
+    extraction_tasks = []
+    for state_abbrev in STATE_ABBREVIATIONS:
+        script_path = f"{SCRIPTS_BASE_PATH}/extract/vaccinations/run.sh"
+        month_year = CURRENT_YEAR_MONTH
+        extract_opendatasus = BashOperator(
+            task_id=f"extract_opendatasus_{state_abbrev}",
+            dag=dag,
+            bash_command=f"{script_path} {month_year} {state_abbrev} replace ",
+        )
+        extraction_tasks.append(extract_opendatasus)
     
-    # # Create raw tables to receive data from S3
-    # create_raw_population = RedshiftQueryOperator(
-    #     task_id="raw_population",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_filepath="plugins/sql/raw/raw_population.sql",
-    # )
+    # Population data from curated source (CSV hosted in GitHub)
+    extract_population = BashOperator(
+        task_id=f"extract_population",
+        dag=dag,
+        bash_command=f"{SCRIPTS_BASE_PATH}/extract/population/run.sh replace ",
+    )
+    extraction_tasks.append(extract_population)
 
-    # create_raw_vaccinations = RedshiftQueryOperator(
-    #     task_id="raw_vaccinations",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_filepath="plugins/sql/raw/raw_vaccinations.sql",
-    # )
+    # Create raw tables to receive data from S3
+    create_raw_population = RedshiftQueryOperator(
+        task_id="raw_population",
+        dag=dag,
+        conn_id="redshift",
+        sql_filepath="plugins/sql/raw/raw_population.sql",
+    )
 
-    # create_raw_vaccinations_tmp = RedshiftQueryOperator(
-    #     task_id="raw_vaccinations_tmp",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_filepath="plugins/sql/raw/raw_vaccinations_tmp.sql",
-    # )
+    create_raw_vaccinations = RedshiftQueryOperator(
+        task_id="raw_vaccinations",
+        dag=dag,
+        conn_id="redshift",
+        sql_filepath="plugins/sql/raw/raw_vaccinations.sql",
+    )
 
-    # # Load raw data from S3
-    # copy_population_to_redshift = CopyCsvToRedshiftOperator(
-    #     task_id="copy_population_data",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     table_name="raw_population",
-    #     s3_from_path="s3://udacity-capstone-project-opendatasus/raw/population",
-    #     iam_role="arn:aws:iam::301426828416:role/dwhRole",
-    #     region="us-west-2",
-    #     compression=None,
-    # )
+    create_raw_vaccinations_tmp = RedshiftQueryOperator(
+        task_id="raw_vaccinations_tmp",
+        dag=dag,
+        conn_id="redshift",
+        sql_filepath="plugins/sql/raw/raw_vaccinations_tmp.sql",
+    )
 
-    # copy_vaccinations_to_redshift = CopyCsvToRedshiftPartionedOperator(
-    #     task_id="copy_vaccinations_data",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     table_name="raw_vaccinations",
-    #     s3_from_path="s3://udacity-capstone-project-opendatasus/raw/vaccinations",
-    #     iam_role="arn:aws:iam::301426828416:role/dwhRole",
-    #     region="us-west-2",
-    #     compression="gzip",
-    #     temporary_table_name="raw_vaccinations_tmp",
-    #     primary_key="document_id",
-    #     partition_column_name="year_month",
-    #     partition_column_value=CURRENT_YEAR_MONTH,
-    # )
+    # Load raw data from S3
+    copy_population_to_redshift = CopyCsvToRedshiftOperator(
+        task_id="copy_population_data",
+        dag=dag,
+        conn_id="redshift",
+        table_name="raw_population",
+        s3_from_path="s3://udacity-capstone-project-opendatasus/raw/population",
+        iam_role="arn:aws:iam::301426828416:role/dwhRole",
+        region="us-west-2",
+        compression=None,
+    )
 
-    # # Transform into dimensional model
-    # rebuild_staging_vaccinations = RedshiftQueryOperator(
-    #     task_id="staging_vaccinations",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_filepath="plugins/sql/staging/staging_vaccinations.sql",
-    # )
+    copy_vaccinations_to_redshift = CopyCsvToRedshiftPartionedOperator(
+        task_id="copy_vaccinations_data",
+        dag=dag,
+        conn_id="redshift",
+        table_name="raw_vaccinations",
+        s3_from_path="s3://udacity-capstone-project-opendatasus/raw/vaccinations",
+        iam_role="arn:aws:iam::301426828416:role/dwhRole",
+        region="us-west-2",
+        compression="gzip",
+        temporary_table_name="raw_vaccinations_tmp",
+        primary_key="document_id",
+        partition_column_name="year_month",
+        partition_column_value=CURRENT_YEAR_MONTH,
+    )
 
-    # rebuild_dim_patients = RedshiftQueryOperator(
-    #     task_id="dim_patients",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_filepath="plugins/sql/dimensional/dim_patients.sql",
-    # )
+    # Transform into dimensional model
+    rebuild_staging_vaccinations = RedshiftQueryOperator(
+        task_id="staging_vaccinations",
+        dag=dag,
+        conn_id="redshift",
+        sql_filepath="plugins/sql/staging/staging_vaccinations.sql",
+    )
 
-    # rebuild_dim_facilities = RedshiftQueryOperator(
-    #     task_id="dim_facilities",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_filepath="plugins/sql/dimensional/dim_facilities.sql",
-    # )
+    rebuild_dim_patients = RedshiftQueryOperator(
+        task_id="dim_patients",
+        dag=dag,
+        conn_id="redshift",
+        sql_filepath="plugins/sql/dimensional/dim_patients.sql",
+    )
 
-    # rebuild_dim_vaccines = RedshiftQueryOperator(
-    #     task_id="dim_vaccines",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_filepath="plugins/sql/dimensional/dim_vaccines.sql",
-    # )
+    rebuild_dim_facilities = RedshiftQueryOperator(
+        task_id="dim_facilities",
+        dag=dag,
+        conn_id="redshift",
+        sql_filepath="plugins/sql/dimensional/dim_facilities.sql",
+    )
 
-    # rebuild_dim_cities = RedshiftQueryOperator(
-    #     task_id="dim_cities",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_filepath="plugins/sql/dimensional/dim_cities.sql",
-    # )
+    rebuild_dim_vaccines = RedshiftQueryOperator(
+        task_id="dim_vaccines",
+        dag=dag,
+        conn_id="redshift",
+        sql_filepath="plugins/sql/dimensional/dim_vaccines.sql",
+    )
 
-    # rebuild_fact_vaccinations = RedshiftQueryOperator(
-    #     task_id="fact_vaccinations",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_filepath="plugins/sql/dimensional/fact_vaccinations.sql",
-    # )
+    rebuild_dim_cities = RedshiftQueryOperator(
+        task_id="dim_cities",
+        dag=dag,
+        conn_id="redshift",
+        sql_filepath="plugins/sql/dimensional/dim_cities.sql",
+    )
 
-    # rebuild_dim_calendar = RedshiftQueryOperator(
-    #     task_id="dim_calendar",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_filepath="plugins/sql/dimensional/dim_calendar.sql",
-    # )
+    rebuild_fact_vaccinations = RedshiftQueryOperator(
+        task_id="fact_vaccinations",
+        dag=dag,
+        conn_id="redshift",
+        sql_filepath="plugins/sql/dimensional/fact_vaccinations.sql",
+    )
 
-    # # Perform data quality checks
-    # assert_fact_vaccinations_unique_vaccination_sk = DataQualityOperator(
-    #     task_id="assert_fact_vaccinations_unique_vaccination_sk",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_query="""
-    #         select count(*) from (
-    #             select
-    #                 vaccination_sk,
-    #                 count(*)
-    #             from
-    #                 fact_vaccinations
-    #             group by 
-    #                 1
-    #             having
-    #                 count(*) > 1
-    #         )
-    #     """,
-    #     expected_result=0,
-    # )
+    rebuild_dim_calendar = RedshiftQueryOperator(
+        task_id="dim_calendar",
+        dag=dag,
+        conn_id="redshift",
+        sql_filepath="plugins/sql/dimensional/dim_calendar.sql",
+    )
 
-    # assert_dim_patients_unique_patient_sk = DataQualityOperator(
-    #     task_id="assert_dim_patients_unique_patient_sk",
-    #     dag=dag,
-    #     conn_id="redshift",
-    #     sql_query="""
-    #         select count(*) from (
-    #             select
-    #                 patient_sk,
-    #                 count(*)
-    #             from
-    #                 dim_patients
-    #             group by 
-    #                 1
-    #             having
-    #                 count(*) > 1
-    #         )
-    #     """,
-    #     expected_result=0,
-    # )
+    # Perform data quality checks
+    assert_fact_vaccinations_unique_vaccination_sk = DataQualityOperator(
+        task_id="assert_fact_vaccinations_unique_vaccination_sk",
+        dag=dag,
+        conn_id="redshift",
+        sql_query="""
+            select count(*) from (
+                select
+                    vaccination_sk,
+                    count(*)
+                from
+                    fact_vaccinations
+                group by 
+                    1
+                having
+                    count(*) > 1
+            )
+        """,
+        expected_result=0,
+    )
+
+    assert_dim_patients_unique_patient_sk = DataQualityOperator(
+        task_id="assert_dim_patients_unique_patient_sk",
+        dag=dag,
+        conn_id="redshift",
+        sql_query="""
+            select count(*) from (
+                select
+                    patient_sk,
+                    count(*)
+                from
+                    dim_patients
+                group by 
+                    1
+                having
+                    count(*) > 1
+            )
+        """,
+        expected_result=0,
+    )
 
     # Dependencies
     (
         begin_execution
-        >> extract_opendatasus
-        # >> [
-        #     create_raw_population,
-        #     create_raw_vaccinations,
-        #     create_raw_vaccinations_tmp,
-        # ]
-        # >> create_raw_tables_completed
-        # >> [copy_population_to_redshift, copy_vaccinations_to_redshift]
-        # >> load_raw_completed
-        # >> rebuild_staging_vaccinations
-        # >> [
-        #     rebuild_dim_patients,
-        #     rebuild_dim_facilities,
-        #     rebuild_dim_vaccines,
-        #     rebuild_dim_cities,
-        # ]
-        # >> rebuild_fact_vaccinations
-        # >> rebuild_dim_calendar
-        # >> rebuild_completed
-        # >> [
-        #     assert_fact_vaccinations_unique_vaccination_sk,
-        #     assert_dim_patients_unique_patient_sk,
-        # ]
-        # >> data_quality_checks_completed
-        # >> execution_completed
+        >> extraction_tasks
+        >> extraction_completed
+        >> [
+            create_raw_population,
+            create_raw_vaccinations,
+            create_raw_vaccinations_tmp,
+        ]
+        >> create_raw_tables_completed
+        >> [copy_population_to_redshift, copy_vaccinations_to_redshift]
+        >> load_raw_completed
+        >> rebuild_staging_vaccinations
+        >> [
+            rebuild_dim_patients,
+            rebuild_dim_facilities,
+            rebuild_dim_vaccines,
+            rebuild_dim_cities,
+        ]
+        >> rebuild_fact_vaccinations
+        >> rebuild_dim_calendar
+        >> rebuild_completed
+        >> [
+            assert_fact_vaccinations_unique_vaccination_sk,
+            assert_dim_patients_unique_patient_sk,
+        ]
+        >> data_quality_checks_completed
+        >> execution_completed
     )
