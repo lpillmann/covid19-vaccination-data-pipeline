@@ -6,8 +6,8 @@ This project implements an automated data pipeline to ingest and model COVID-19 
 
 ### Data sources
 Two data sources are used:
-- [Vaccinations: _Campanha Nacional de Vacinação contra Covid-19_](https://opendatasus.saude.gov.br/dataset/covid-19-vacinacao)
-- [Population: 2020 Brazilian census](https://www.ibge.gov.br)
+- [Vaccinations: _Campanha Nacional de Vacinação contra Covid-19_ (API)](https://opendatasus.saude.gov.br/dataset/covid-19-vacinacao)
+- [Population: 2020 Brazilian census (curated CSV)](https://raw.githubusercontent.com/turicas/covid19-br/master/covid19br/data/populacao-por-municipio-2020.csv)
 
 ### Data modeling
 
@@ -235,7 +235,7 @@ from
 
 ### Pipeline
 The data pipeline was automated using Airflow. It is comprised of four major steps:
-1. **Extract data from the sources to AWS S3**: this is done using [Singer standard](https://github.com/singer-io/getting-started). The [Open Data SUS tap](https://github.com/lpillmann/tap-opendatasus) was developed from scratch as part of the project. The [S3 CSV target](https://github.com/lpillmann/pipelinewise-target-s3-csv) was adapted from existing one. Airflow `BashOperator` was used to run the tap & target.
+1. **Extract data from the sources to S3**: this is done using the [Singer standard](https://www.singer.io/). The [Open Data SUS tap](https://github.com/lpillmann/tap-opendatasus) was developed from scratch as part of the project. The [S3 CSV target](https://github.com/lpillmann/pipelinewise-target-s3-csv) was adapted from existing one. Airflow `BashOperator` was used to run the tap & target.
 1. **Load data from S3 to Redshift**: use of `COPY` statement with custom built operators (`CopyCsvToRedshiftOperator` and `CopyCsvToRedshiftPartionedOperator`).
 1. **Transform data into dimensional model**: transformations were done using SQL on top of Redshift, using layers of processing (`raw`, `staging` and `dimensional`) and the custom built operator `RedshiftQueryOperator`.
 1. **Data quality checks**: implemented using SQL with custom operator `DataQualityOperator` that compares the test query result with the expected value provided by the user.
@@ -332,7 +332,17 @@ Population estimates by city (2020 census).
 1. A custom Airflow image was created to enable having a second Python installation on the container. This was needed to run the tap and target without conflicts with Airflow's main one.
 1. A partitioned load approach is implemented and can be used in case of daily runs. For development purposes only the load all operator was used since the Redshift cluster was recreated every time. 
 
-### Possible enhancements
-These are further improvements that can be made to the project:
+### Future work
+These are some of the further improvements that can be made to the project:
 - Change incremental extractions to be daily instead of monthly to reduce processing time
 - Clean DAG definition by using default arguments more wisely
+
+## Built With
+
+  - [Airflow](https://airflow.apache.org/) - Pipeline automation and orchestration
+  - [AWS Redshift](https://aws.amazon.com/redshift/?whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc) - Used as Data Warehouse
+  - [AWS S3](https://aws.amazon.com/s3/) - Storage of data sources
+  - [Singer](https://www.singer.io/) - Used as the standard to write the extraction systems
+  - [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) - Used to interact with AWS
+
+
