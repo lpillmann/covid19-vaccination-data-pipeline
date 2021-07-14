@@ -6,7 +6,7 @@ class CopyCsvToRedshiftOperator(BaseOperator):
     ui_color = "#fcc379"
 
     def __init__(
-        self, conn_id, table_name, s3_from_path, iam_role, region, compression, **kwargs
+        self, conn_id, table_name, s3_from_path, iam_role, region, compression, max_errors_tolerance, **kwargs
     ):
         super().__init__(**kwargs)
         self.conn_id = conn_id
@@ -15,6 +15,7 @@ class CopyCsvToRedshiftOperator(BaseOperator):
         self.iam_role = iam_role
         self.region = region
         self.compression = compression
+        self.max_errors_tolerance = max_errors_tolerance
 
     @property
     def copy_query(self):
@@ -26,6 +27,7 @@ class CopyCsvToRedshiftOperator(BaseOperator):
             csv
             quote '"'
             {self.compression or ''}
+            maxerror {self.max_errors_tolerance}
             ignoreheader 1
             """
 

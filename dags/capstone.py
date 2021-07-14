@@ -118,6 +118,7 @@ with DAG(
         iam_role="arn:aws:iam::301426828416:role/dwhRole",
         region="us-west-2",
         compression=None,
+        max_errors_tolerance=0
     )
 
     # Load all history
@@ -130,6 +131,7 @@ with DAG(
         iam_role="arn:aws:iam::301426828416:role/dwhRole",
         region="us-west-2",
         compression="gzip",
+        max_errors_tolerance=100
     )
 
     ## Partitioned load (only current month)
