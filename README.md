@@ -330,7 +330,7 @@ These are some of the further improvements that can be made to the project:
 
   - [Airflow](https://airflow.apache.org/) - Pipeline automation and orchestration
   - [AWS Redshift](https://aws.amazon.com/redshift/?whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc) - Used as Data Warehouse
-  - [AWS S3](https://aws.amazon.com/s3/) - Storage of data sources
+  - [AWS S3](https://aws.amazon.com/s3/) - Staging storage for data sources
   - [Singer](https://www.singer.io/) - Used as the standard to write the extraction systems
   - [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) - Used to interact with AWS in infrastructure-as-code scripts
 
