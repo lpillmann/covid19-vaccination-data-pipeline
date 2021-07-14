@@ -122,14 +122,14 @@ with DAG(
 
     # Load all history
     copy_vaccinations_to_redshift = CopyCsvToRedshiftOperator(
-        task_id='copy_vaccinations_data',
+        task_id="copy_vaccinations_data",
         dag=dag,
-        conn_id='redshift',
-        table_name='raw_vaccinations',
-        s3_from_path='s3://udacity-capstone-project-opendatasus/raw/vaccinations',
-        iam_role='arn:aws:iam::301426828416:role/dwhRole',
-        region='us-west-2',
-        compression='gzip',
+        conn_id="redshift",
+        table_name="raw_vaccinations",
+        s3_from_path="s3://udacity-capstone-project-opendatasus/raw/vaccinations",
+        iam_role="arn:aws:iam::301426828416:role/dwhRole",
+        region="us-west-2",
+        compression="gzip",
     )
 
     ## Partitioned load (only current month)
