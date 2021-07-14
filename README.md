@@ -109,7 +109,8 @@ This structure enables answering questions such as:
     - Breakdown by manufacturer, type, etc
 - How many people are still left to be vaccinated?
 
-#### Example analysis
+#### Example analyses
+The charts below were produced using the dimensional model produced by the pipeline.
 
 Q: _Which states present the best vaccination per capta?_
 ![Cumulative vaccinations per capta](./images/analysis-cumulative-vaccinations-per-capta.png)
