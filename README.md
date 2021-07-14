@@ -9,91 +9,92 @@ The model is comprised of one fact table for *vaccinations* and dimensions for *
 
 <details>
   <summary>Expand to see details </summary>
-  
-    ### Fact
-    | fact_vaccinations |  |
-    |---|---|
-    | vaccination_sk | text |
-    | patient_sk | text |
-    | facility_sk | text |
-    | vaccine_sk | text |
-    | city_sk | text |
-    | vaccination_date | timestamptz |
-    | vaccinations_count | integer |
-    #### Dimensions
+    
+### Fact
 
-    | dim_patients |  |
-    |---|---|
-    | patient_sk | text |
-    | patient_id | text |
-    | patient_age | integer |
-    | patient_birth_date | text |
-    | patient_biological_gender_enum | text |
-    | patient_skin_color_code | text |
-    | patient_skin_color_value | text |
-    | patient_address_city_ibge_code | text |
-    | patient_address_city_name | text |
-    | patient_address_state_abbrev | text |
-    | patient_address_country_code | text |
-    | patient_address_country_name | text |
-    | patient_address_postal_code | text |
-    | patient_nationality_enum | text |
-    | vaccination_category_code | text |
-    | vaccination_category_name | text |
-    | vaccination_subcategory_code | text |
-    | vaccination_subcategory_name | text |
+| fact_vaccinations |  |
+|---|---|
+| vaccination_sk | text |
+| patient_sk | text |
+| facility_sk | text |
+| vaccine_sk | text |
+| city_sk | text |
+| vaccination_date | timestamptz |
+| vaccinations_count | integer |
 
-    | dim_facilities |  |
-    |---|---|
-    | facility_sk | text |
-    | facility_code | text |
-    | facility_registration_name | text |
-    | facility_fantasy_name | text |
-    | facility_city_code | text |
-    | facility_city_name | text |
-    | facility_state_abbrev | text |
+#### Dimensions
 
-    | dim_vaccines |  |
-    |---|---|
-    | vaccine_sk | text |
-    | vaccination_dose_description | text |
-    | vaccine_type_code | text |
-    | vaccine_batch_code | text |
-    | vaccine_type_name | text |
-    | vaccine_manufacturer_name | text |
-    | vaccine_manufacturer_reference_code | text |
+| dim_patients |  |
+|---|---|
+| patient_sk | text |
+| patient_id | text |
+| patient_age | integer |
+| patient_birth_date | text |
+| patient_biological_gender_enum | text |
+| patient_skin_color_code | text |
+| patient_skin_color_value | text |
+| patient_address_city_ibge_code | text |
+| patient_address_city_name | text |
+| patient_address_state_abbrev | text |
+| patient_address_country_code | text |
+| patient_address_country_name | text |
+| patient_address_postal_code | text |
+| patient_nationality_enum | text |
+| vaccination_category_code | text |
+| vaccination_category_name | text |
+| vaccination_subcategory_code | text |
+| vaccination_subcategory_name | text |
 
-    | dim_cities |  |
-    |---|---|
-    | city_sk | text |
-    | state | text |
-    | state_ibge_code | text |
-    | city_ibge_code | text |
-    | city | text |
-    | estimated_population | integer |
-    | cropped_city_ibge_code | text |
+| dim_facilities |  |
+|---|---|
+| facility_sk | text |
+| facility_code | text |
+| facility_registration_name | text |
+| facility_fantasy_name | text |
+| facility_city_code | text |
+| facility_city_name | text |
+| facility_state_abbrev | text |
 
-    | dim_cities |  |
-    |---|---|
-    | city_sk | text |
-    | state | text |
-    | state_ibge_code | text |
-    | city_ibge_code | text |
-    | city | text |
-    | estimated_population | integer |
-    | cropped_city_ibge_code | text |
+| dim_vaccines |  |
+|---|---|
+| vaccine_sk | text |
+| vaccination_dose_description | text |
+| vaccine_type_code | text |
+| vaccine_batch_code | text |
+| vaccine_type_name | text |
+| vaccine_manufacturer_name | text |
+| vaccine_manufacturer_reference_code | text |
 
-    | dim_calendar |  |
-    |---|---|
-    | full_date | timestamptz |
-    | day | integer |
-    | week | integer |
-    | month | integer |
-    | year | integer |
-    | weekday | integer |
+| dim_cities |  |
+|---|---|
+| city_sk | text |
+| state | text |
+| state_ibge_code | text |
+| city_ibge_code | text |
+| city | text |
+| estimated_population | integer |
+| cropped_city_ibge_code | text |
+
+| dim_cities |  |
+|---|---|
+| city_sk | text |
+| state | text |
+| state_ibge_code | text |
+| city_ibge_code | text |
+| city | text |
+| estimated_population | integer |
+| cropped_city_ibge_code | text |
+
+| dim_calendar |  |
+|---|---|
+| full_date | timestamptz |
+| day | integer |
+| week | integer |
+| month | integer |
+| year | integer |
+| weekday | integer |
 
 </details>
-
 
 ## Setup
 ### Infrastructure
