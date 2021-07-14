@@ -2,10 +2,16 @@
 Main repository for Udacity Data Engineering Nanodegree Capstone Project - COVID-19 Vaccination in Brazil
 
 ## Overview
+This project aims to implement an automated data pipeline to ingest data from the Brazilian government related to the COVID-19 vaccination campaign.
 
-### Dimensional model
+### Data sources
+Two data sources are used:
+- [Vaccinations: _Campanha Nacional de Vacinação contra Covid-19_](https://opendatasus.saude.gov.br/dataset/covid-19-vacinacao)
+- [Population: 2020 Brazilian census](https://www.ibge.gov.br)
 
-The model is comprised of one fact table for **vaccinations** and dimensions for **patients**, **facilities**, **vaccines**, **cities**, **cities** and **calendar**.
+### Data modeling
+
+The output of the pipeline is a dimensional model comprised of one fact table for **vaccinations** and dimensions for **patients**, **facilities**, **vaccines**, **cities**, **cities** and **calendar**.
 
 <details>
   <summary>Expand to all tables with column types </summary>
@@ -92,6 +98,155 @@ The model is comprised of one fact table for **vaccinations** and dimensions for
 
 </details>
 
+
+This structure enables answering questions such as:
+
+- Which states/cities present the best vaccination per capta ratio?
+- How is the vaccination pace evolving over time?
+- How many vaccinations are being applied daily in Brazil?
+    - Breakdown by state, city, gender, age group, so on
+- What vaccines are being applied?
+    - Breakdown by manufacturer, type, etc
+- How many people are still left to be vaccinated?
+
+#### Example analysis
+
+Q: _Which states present the best vaccination per capta?_
+![Cumulative vaccinations per capta](./images/analysis-cumulative-vaccinations-per-capta.png)
+
+<details>
+  <summary>Expand to see query used </summary>
+
+
+```sql
+with state_populations as
+(
+    -- Pre-aggregate population by state before joining
+    select
+        state,
+        sum(estimated_population) as state_population
+    from
+        dim_cities
+    group by 
+        1
+),
+
+
+daily_vaccinations as
+(
+    select
+        dca.full_date as vaccination_date,
+        dfa.facility_state_abbrev as state,
+        max(pop.state_population) as state_population,
+        sum(fva.vaccinations_count) as daily_vaccinations
+    from
+        fact_vaccinations fva
+        inner join
+        dim_calendar dca on fva.vaccination_date = dca.full_date
+        inner join
+        dim_facilities dfa on fva.facility_sk = dfa.facility_sk
+        inner join
+        state_populations pop on dfa.facility_state_abbrev = pop.state
+    where
+        dfa.facility_state_abbrev != 'SC'  -- removing due to incomplete data
+    group by
+        1,2
+),
+
+cumulative_daily_vaccinations as
+(
+    select
+        *,
+        sum(daily_vaccinations) over (
+            partition by state 
+            order by vaccination_date 
+            rows between unbounded preceding and current row
+        )::float as cumulative_daily_vaccinations 
+    from
+        daily_vaccinations
+)
+
+select
+    *,
+    cumulative_daily_vaccinations / state_population as cumulative_daily_vaccinations_per_capta
+from
+    cumulative_daily_vaccinations
+
+```
+</details>
+
+Q: _How is the vaccination pace evolving over time?_
+![Cumulative vaccinations per capta](./images/analysis-daily-vaccinations-per-capta.png)
+
+<details>
+  <summary>Expand to see query used </summary>
+
+
+```sql
+with state_populations as
+(
+    -- Pre-aggregate population by state before joining
+    select
+        state,
+        sum(estimated_population) as state_population
+    from
+        dim_cities
+    group by 
+        1
+),
+
+
+daily_vaccinations_per_capta as
+(
+    select
+        dca.full_date as vaccination_date,
+        dfa.facility_state_abbrev as state,
+        sum(fva.vaccinations_count)::float / max(pop.state_population) as vaccinations_per_capta
+    from
+        fact_vaccinations fva
+        inner join
+        dim_calendar dca on fva.vaccination_date = dca.full_date
+        inner join
+        dim_facilities dfa on fva.facility_sk = dfa.facility_sk
+        inner join
+        state_populations pop on dfa.facility_state_abbrev = pop.state
+    where
+        dfa.facility_state_abbrev != 'SC'  -- removing due to incomplete data
+    group by
+        1,2
+)
+
+select
+    *,
+    avg(vaccinations_per_capta) over (
+        partition by state 
+        order by vaccination_date 
+        rows between 29 preceding and current row
+    ) as rolling_avg_30_days 
+from
+    daily_vaccinations_per_capta
+
+
+```
+</details>
+
+
+
+### Pipeline
+The data pipeline was automated using Airflow. It is comprised of four major steps:
+1. **Extract data from the sources to AWS S3**: this is done using [Singer standard](https://github.com/singer-io/getting-started). The [Open Data SUS tap](https://github.com/lpillmann/tap-opendatasus) was developed from scratch as part of the project. The [S3 CSV target](https://github.com/lpillmann/pipelinewise-target-s3-csv) was adapted from existing one. Airflow `BashOperator` was used to run the tap & target.
+1. **Load data from S3 to Redshift**: use of `COPY` statement with custom built operators (`CopyCsvToRedshiftOperator` and `CopyCsvToRedshiftPartionedOperator`).
+1. **Transform data into dimensional model**: transformations were done using SQL on top of Redshift, using layers of processing (`raw`, `staging` and `dimensional`) and the custom built operator `RedshiftQueryOperator`.
+1. **Data quality checks**: implemented using SQL with custom operator `DataQualityOperator` that compares the test query result with the expected value provided by the user.
+
+Below is the graph view of the DAG:
+
+![DAG graph](./images/airflow-dag.png)
+
+And here is the Gantt view of a complete execution:
+
+![DAG Gantt](./images/airflow-gantt.png)
+
 ## Setup
 ### Infrastructure
 1. Install local Python env
@@ -170,3 +325,13 @@ bash dags/scripts/extract/population/run.sh
 Population estimates by city (2020 census).
 
 > Source: [IBGE](https://www.ibge.gov.br/), data treated and shared by Álvaro Justen/[Brasil.IO](https://brasil.io/)
+
+## Notes and comments
+1. Not all Brazilian states are covered. Just a few were selected to use as an example. They amount to over 15 million rows in the fact table.
+1. A custom Airflow image was created to enable having a second Python installation on the container. This was needed to run the tap and target without conflicts with Airflow's main one.
+1. A partitioned load approach is implemented and can be used in case of daily runs. For development purposes only the load all operator was used since the Redshift cluster was recreated every time. 
+
+### Possible enhancements
+These are further improvements that can be made to the project:
+- Change incremental extractions to be daily instead of monthly to reduce processing time
+- Clean DAG definition by using default arguments more wisely
