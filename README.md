@@ -238,7 +238,7 @@ And here is the Gantt view of a complete execution:
 
 ![DAG Gantt](./images/airflow-gantt.png)
 
-## Setup
+## Setup instructions
 ### Infrastructure
 Install local Python env
 ```bash
@@ -275,7 +275,7 @@ make create-cluster
 >```
 
 
-## Airflow setup
+### Airflow
 Airflow was configured using Docker following [this reference](https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html#running-airflow).
 
 Build customized image:
@@ -323,7 +323,7 @@ These are some of the further improvements that can be made to the project:
 - **The pipelines would be run on a daily basis by 7 am every day**. The DAG is already implemented having a daily schedule in mind. For example, the extraction is done only for the latest `year_month` and the `CopyCsvToRedshiftPartionedOperator` is available to load only a specific partition (it is currenly commented). So the only change would be setting the schedule parameter and uncommenting this operator to be used for the vaccinations data.
 - **The database needed to be accessed by 100+ people**. In order to support such demand, Redshift cluster configuration would need to be changed. Specifically, the number of nodes would be increased and, depending on the load, their sizes would need to be increased as well.
 
-## Built With
+## Built with
 
   - [Airflow](https://airflow.apache.org/) - Pipeline automation and orchestration
   - [AWS Redshift](https://aws.amazon.com/redshift/?whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc) - Used as Data Warehouse
