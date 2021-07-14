@@ -5,7 +5,7 @@ Main repository for Udacity Data Engineering Nanodegree Capstone Project - COVID
 
 ### Dimensional model
 
-The model is comprised of one fact table for *vaccinations* and dimensions for *patients*, *facilities*, *vaccines*, *cities*, *cities* and *calendar*.
+The model is comprised of one fact table for **vaccinations** and dimensions for **patients**, **facilities**, **vaccines**, **cities**, **cities** and **calendar**.
 
 <details>
   <summary>Expand to all tables with column types </summary>
