@@ -7,7 +7,7 @@ This project implements an automated data pipeline to ingest and model COVID-19 
 ### Data sources
 Two data sources are used:
 - **Vaccinations**: _National Covid-19 Vaccination Campaign_. Source: Brazilian Ministry of Health. Format: API ([link](https://opendatasus.saude.gov.br/dataset/covid-19-vacinacao)).
-- **Population**: 2020 Brazilian census. Source: [IBGE](https://www.ibge.gov.br/), data treated and shared by Álvaro Justen/[Brasil.IO](https://brasil.io/). Format: CSV ([link](https://raw.githubusercontent.com/turicas/covid19-br/master/covid19br/data/populacao-por-municipio-2020.csv))
+- **Population**: 2020 Brazilian census. Source: [IBGE](https://www.ibge.gov.br/), data treated and shared by Álvaro Justen/[Brasil.IO](https://brasil.io/). Format: CSV ([link](https://raw.githubusercontent.com/turicas/covid19-br/master/covid19br/data/populacao-por-municipio-2020.csv)).
 
 ### Data modeling
 
