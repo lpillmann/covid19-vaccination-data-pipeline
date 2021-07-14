@@ -101,7 +101,7 @@ The output of the pipeline is a dimensional model comprised of one fact table fo
 
 This structure enables answering questions such as:
 
-- Which states/cities present the best vaccination per capta ratio?
+- Which states/cities present the best vaccination per capta?
 - How is the vaccination pace evolving over time?
 - How many vaccinations are being applied daily in Brazil?
     - Breakdown by state, city, gender, age group, so on
