@@ -325,6 +325,7 @@ These are some of the further improvements that can be made to the project:
   - [AWS S3](https://aws.amazon.com/s3/) - Staging storage for data sources
   - [Singer](https://www.singer.io/) - Used as the standard to write the extraction systems
   - [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) - Used to interact with AWS in infrastructure-as-code scripts
+  - [Redash](https://redash.io/) - BI tool
 
 ## Acknowledgments
 
