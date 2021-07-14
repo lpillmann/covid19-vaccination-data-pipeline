@@ -6,7 +6,7 @@ create table staging_vaccinations as (
             document_id as elasticsearch_document_id,
             paciente_id as patient_id,
             paciente_idade::integer as patient_age,
-            paciente_dataNascimento::date as patient_birth_date,
+            paciente_dataNascimento as patient_birth_date,
             paciente_enumSexoBiologico as patient_biological_gender_enum,
             paciente_racaCor_codigo as patient_skin_color_code,
             paciente_racaCor_valor as patient_skin_color_value,
