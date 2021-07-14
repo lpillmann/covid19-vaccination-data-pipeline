@@ -139,8 +139,6 @@ daily_vaccinations as
         dim_facilities dfa on fva.facility_sk = dfa.facility_sk
         inner join
         state_populations pop on dfa.facility_state_abbrev = pop.state
-    where
-        dfa.facility_state_abbrev != 'SC'  -- removing due to incomplete data
     group by
         1,2
 ),
@@ -202,8 +200,6 @@ daily_vaccinations_per_capta as
         dim_facilities dfa on fva.facility_sk = dfa.facility_sk
         inner join
         state_populations pop on dfa.facility_state_abbrev = pop.state
-    where
-        dfa.facility_state_abbrev != 'SC'  -- removing due to incomplete data
     group by
         1,2
 )
