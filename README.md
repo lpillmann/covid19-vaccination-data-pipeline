@@ -235,7 +235,7 @@ from
 
 ### Pipeline
 The data pipeline was automated using Airflow. It is comprised of four major steps:
-1. **Extract data from the sources to S3**: this is done using the [Singer standard](https://www.singer.io/). The [Open Data SUS tap](https://github.com/lpillmann/tap-opendatasus) was developed from scratch as part of the project. The [S3 CSV target](https://github.com/lpillmann/pipelinewise-target-s3-csv) was adapted from existing one. Airflow `BashOperator` was used to run the tap & target.
+1. **Extract data from the sources to S3**: for vaccinations API this is done using the [Singer standard](https://www.singer.io/). The [Open Data SUS tap](https://github.com/lpillmann/tap-opendatasus) was developed from scratch as part of the project. The [S3 CSV target](https://github.com/lpillmann/pipelinewise-target-s3-csv) was adapted from existing one. For the population data, a standalone Shell script was used. Airflow `BashOperator` was used to run the extractions.
 1. **Load data from S3 to Redshift**: use of `COPY` statement with custom built operators (`CopyCsvToRedshiftOperator` and `CopyCsvToRedshiftPartionedOperator`).
 1. **Transform data into dimensional model**: transformations were done using SQL on top of Redshift, using layers of processing (`raw`, `staging` and `dimensional`) and the custom built operator `RedshiftQueryOperator`.
 1. **Data quality checks**: implemented using SQL with custom operator `DataQualityOperator` that compares the test query result with the expected value provided by the user.
