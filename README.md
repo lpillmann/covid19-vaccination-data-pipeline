@@ -2,11 +2,11 @@
 Main repository for Udacity Data Engineering Nanodegree Capstone Project - COVID-19 Vaccination in Brazil.
 
 ## Overview
-This project implements an automated data pipeline to ingest and model COVID-19 vaccination data from the Brazilian government.
+This project implements an automated data pipeline to ingest and model vaccination data from the Brazilian government.
 
 ### Data sources
 Two data sources are used:
-- **Vaccinations**: _National Covid-19 Vaccination Campaign_. Source: Brazilian Ministry of Health. Format: API ([link](https://opendatasus.saude.gov.br/dataset/covid-19-vacinacao)).
+- **Vaccinations**: National Covid-19 Vaccination Campaign. Source: Brazilian Ministry of Health. Format: API ([link](https://opendatasus.saude.gov.br/dataset/covid-19-vacinacao)).
 - **Population**: 2020 Brazilian census. Source: [IBGE](https://www.ibge.gov.br/), data treated and shared by Álvaro Justen/[Brasil.IO](https://brasil.io/). Format: CSV ([link](https://raw.githubusercontent.com/turicas/covid19-br/master/covid19br/data/populacao-por-municipio-2020.csv)).
 
 ### Data modeling
@@ -14,7 +14,7 @@ Two data sources are used:
 The output of the pipeline is a dimensional model comprised of one fact table for **vaccinations** and dimensions for **patients**, **facilities**, **vaccines**, **cities**, **cities** and **calendar**.
 
 <details>
-  <summary>Expand to all tables with column types </summary>
+  <summary>Expand to see table columns and types </summary>
     
 | fact_vaccinations |  |
 |---|---|
@@ -88,6 +88,7 @@ The output of the pipeline is a dimensional model comprised of one fact table fo
 
 </details>
 
+<br>
 
 This structure enables answering questions such as:
 
@@ -224,6 +225,9 @@ from
 
 
 ### Pipeline
+Below is the overview of the pipeline:
+![Pipeline diagram](./images/pipeline-diagram.png)
+
 The data pipeline was automated using Airflow. It is comprised of four major steps:
 1. **Extract data from the sources to S3**: for vaccinations API this is done using the [Singer standard](https://www.singer.io/). The [Open Data SUS tap](https://github.com/lpillmann/tap-opendatasus) was developed from scratch as part of the project. The [S3 CSV target](https://github.com/lpillmann/pipelinewise-target-s3-csv) was adapted from existing one. For the population data, a standalone Shell script was used. Airflow `BashOperator` was used to run the extractions.
 1. **Load data from S3 to Redshift**: use of `COPY` statement with custom built operators (`CopyCsvToRedshiftOperator` and `CopyCsvToRedshiftPartionedOperator`).
@@ -240,34 +244,32 @@ And here is the Gantt view of a complete execution:
 
 ## Setup
 ### Infrastructure
-1. Install local Python env
-    ```bash
-    make install-infra
-    ```
+Install local Python env
+```bash
+make install-infra
+```
 
-1. Define the following enviroment variables
-    ```bash
-    # Tip: add this snippet to your bash profile (e.g. ~/.bashrc or ~/.zshrc if you use ZSH)
-    export UDACITY_AWS_KEY="..."
-    export UDACITY_AWS_SECRET="..."
-    export UDACITY_AWS_REGION="..."
-    export UDACITY_AWS_PROFILE="..."
-    export UDACITY_CAPSTONE_PROJECT_BUCKET="my-bucket"
-    export UDACITY_REDSHIFT_HOST="my-host.something-else.redshift.amazonaws.com"
-    export UDACITY_REDSHIFT_DB_NAME="..."
-    export UDACITY_REDSHIFT_DB_USER="..."
-    export UDACITY_REDSHIFT_DB_PASSWORD="..."
-    export UDACITY_REDSHIFT_DB_PORT="..."
-    export AIRFLOW_UID=1000
-    export AIRFLOW_GID=0
-    ```
+Define the following enviroment variables
+```bash
+# Tip: add this snippet to your bash profile (e.g. ~/.bashrc or ~/.zshrc if you use ZSH)
+export UDACITY_AWS_KEY="..."
+export UDACITY_AWS_SECRET="..."
+export UDACITY_AWS_REGION="..."
+export UDACITY_AWS_PROFILE="..."
+export UDACITY_CAPSTONE_PROJECT_BUCKET="my-bucket"
+export UDACITY_REDSHIFT_HOST="my-host.something-else.redshift.amazonaws.com"
+export UDACITY_REDSHIFT_DB_NAME="..."
+export UDACITY_REDSHIFT_DB_USER="..."
+export UDACITY_REDSHIFT_DB_PASSWORD="..."
+export UDACITY_REDSHIFT_DB_PORT="..."
+export AIRFLOW_UID=1000
+export AIRFLOW_GID=0
+```
 
-1. Create Redshift cluster
-    ```bash
-    make create-cluster
-    ```
-
-1. Setup Airflow (see respective session)
+Create Redshift cluster
+```bash
+make create-cluster
+```
 
 >When finished using the cluster, remember to delete it to avoid unexpected costs:
 >
@@ -329,4 +331,4 @@ These are some of the further improvements that can be made to the project:
 
 ## Acknowledgments
 
-This project used AWS credits provided by Udacity as part of the Udacity Data Engineering Nanodegree course.
+This project used AWS credits provided as part of the Udacity Data Engineering Nanodegree course.
