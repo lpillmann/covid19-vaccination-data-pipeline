@@ -14,77 +14,77 @@ Two data sources are used:
 The output of the pipeline is a dimensional model comprised of one fact table for **vaccinations** and dimensions for **patients**, **facilities**, **vaccines**, **cities**, **cities** and **calendar**.
 
 <details>
-  <summary>Expand to see table columns and types </summary>
+  <summary>Expand to see the data dictionary for each table </summary>
     
-| fact_vaccinations |  |
-|---|---|
-| vaccination_sk | text |
-| patient_sk | text |
-| facility_sk | text |
-| vaccine_sk | text |
-| city_sk | text |
-| vaccination_date | timestamptz |
-| vaccinations_count | integer |
+| fact_vaccinations |  |  |
+|---|---|---|
+| vaccination_sk | text | Unique identifier of the event |
+| patient_sk | text | Unique identifier of the patient |
+| facility_sk | text | Unique identifier of the facility |
+| vaccine_sk | text | Unique identifier of the vaccine |
+| city_sk | text | Unique identifier of the city |
+| vaccination_date | timestamptz | When the vaccination was applied |
+| vaccinations_count | integer | `1` denoting one vaccination per event |
 
-| dim_patients |  |
-|---|---|
-| patient_sk | text |
-| patient_id | text |
-| patient_age | integer |
-| patient_birth_date | text |
-| patient_biological_gender_enum | text |
-| patient_skin_color_code | text |
-| patient_skin_color_value | text |
-| patient_address_city_ibge_code | text |
-| patient_address_city_name | text |
-| patient_address_state_abbrev | text |
-| patient_address_country_code | text |
-| patient_address_country_name | text |
-| patient_address_postal_code | text |
-| patient_nationality_enum | text |
-| vaccination_category_code | text |
-| vaccination_category_name | text |
-| vaccination_subcategory_code | text |
-| vaccination_subcategory_name | text |
+| dim_patients |  |  |
+|---|---|---|
+| patient_sk | text | Unique identifier of the patient |
+| patient_id | text | Unique identifier of the patient (natural key) |
+| patient_age | integer | Age of the patient at the time of vaccination |
+| patient_birth_date | text | Birth date |
+| patient_biological_gender_enum | text | Gender acronym |
+| patient_skin_color_code | text | Skin color code |
+| patient_skin_color_value | text | Skin color description |
+| patient_address_city_ibge_code | text | Address city code |
+| patient_address_city_name | text | Address city name |
+| patient_address_state_abbrev | text | Address state abbreviation |
+| patient_address_country_code | text | Address country name |
+| patient_address_country_name | text | Address country code |
+| patient_address_postal_code | text | Address postal code |
+| patient_nationality_enum | text | Nationality acronym |
+| vaccination_category_code | text | Vaccination category (elderly, healthcare workers, etc) code |
+| vaccination_category_name | text | Vaccination category (elderly, healthcare workers, etc) name |
+| vaccination_subcategory_code | text | Vaccination subcategory (age group, type of job, etc) code |
+| vaccination_subcategory_name | text | Vaccination subcategory (age group, type of job, etc) name |
 
-| dim_facilities |  |
-|---|---|
-| facility_sk | text |
-| facility_code | text |
-| facility_registration_name | text |
-| facility_fantasy_name | text |
-| facility_city_code | text |
-| facility_city_name | text |
-| facility_state_abbrev | text |
+| dim_facilities |  |  |
+|---|---|---|
+| facility_sk | text | Unique identifier of the facility |
+| facility_code | text | Unique identifier of the facility (natural key) |
+| facility_registration_name | text | Formal registration name ("Razão Social") |
+| facility_fantasy_name | text | Fantasy registration name ("Nome Fantasia") |
+| facility_city_code | text | City IBGE code |
+| facility_city_name | text | City name |
+| facility_state_abbrev | text | State abbreviation |
 
-| dim_vaccines |  |
-|---|---|
-| vaccine_sk | text |
-| vaccination_dose_description | text |
-| vaccine_type_code | text |
-| vaccine_batch_code | text |
-| vaccine_type_name | text |
-| vaccine_manufacturer_name | text |
-| vaccine_manufacturer_reference_code | text |
+| dim_vaccines |  |  |
+|---|---|---|
+| vaccine_sk | text | Unique identifier of the vaccine |
+| vaccination_dose_description | text | First, second or single dose |
+| vaccine_type_code | text | Vaccine type code |
+| vaccine_type_name | text | Vaccine type name |
+| vaccine_batch_code | text | Vaccine manufacture batch code ("Lote") |
+| vaccine_manufacturer_name | text | Vaccine manufacturer name |
+| vaccine_manufacturer_reference_code | text | Vaccine manufacturer code |
 
-| dim_cities |  |
-|---|---|
-| city_sk | text |
-| state | text |
-| state_ibge_code | text |
-| city_ibge_code | text |
-| city | text |
-| estimated_population | integer |
-| cropped_city_ibge_code | text |
+| dim_cities |  |  |
+|---|---|---|
+| city_sk | text | Unique identifier of the city |
+| state | text | State abbreviation |
+| state_ibge_code | text | State IBGE code |
+| city_ibge_code | text | City IBGE code (7 digits) |
+| city | text | City name |
+| estimated_population | integer | Estimated population |
+| cropped_city_ibge_code | text | Adjusted city code (6 digits) |
 
-| dim_calendar |  |
-|---|---|
-| full_date | timestamptz |
-| day | integer |
-| week | integer |
-| month | integer |
-| year | integer |
-| weekday | integer |
+| dim_calendar |  |  |
+|---|---|---|
+| full_date | timestamptz | Full date |
+| day | integer | Day of the month number |
+| week | integer | Week of the year number |
+| month | integer | Month number |
+| year | integer | Year number |
+| weekday | integer | Weekday number |
 
 </details>
 
@@ -314,6 +314,11 @@ Open UI at [http://localhost:8080/home](http://localhost:8080/home) using login 
 1. Dag was left without schedule, since it was manually triggered during development. The suggested schedule to run in production would be `@daily`.
 1. A partitioned load approach by `year_month` and `state_abbrev` is implemented and can be used in case of daily runs. For development purposes only the load all operator was used since the Redshift cluster was recreated every time.
 1. The Vaccinations API uses Elasticsearch as engine. The developed tap made use of ES client libraries to enable easier interaction with the endpoints.
+
+## Addressing other scenarios
+- **The data was increased by 100x**. The expected impact would be the DAG taking longer to finish, mostly due to the extract step which is the bottleneck. A possible approach to compensate the longer duration would be partitioning and paralelizing the load using some other attribute such as `city` or `day` - currently the data is partitioned by `year_month` and `state_abbrev`.
+- **The pipelines would be run on a daily basis by 7 am every day**. The DAG is already implemented having a daily schedule in mind. For example, the extraction is done only for the latest `year_month` and the `CopyCsvToRedshiftPartionedOperator` is available to load only a specific partition (it is currenly commented, but it working fine). So the only change would be setting the schedule parameter and uncommenting this operator to be used for the vaccinations data.
+- **The database needed to be accessed by 100+ people**. In order to support such demand, Redshift cluster configuration would need to be changed. Specifically, the number of cluster would be increase and, depending on the load, their sizes would need to be increased as well.
 
 ### Future work
 These are some of the further improvements that can be made to the project:
