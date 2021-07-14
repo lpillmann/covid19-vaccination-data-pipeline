@@ -8,10 +8,8 @@ Main repository for Udacity Data Engineering Nanodegree Capstone Project - COVID
 The model is comprised of one fact table for *vaccinations* and dimensions for *patients*, *facilities*, *vaccines*, *cities*, *cities* and *calendar*.
 
 <details>
-  <summary>Expand to see details </summary>
+  <summary>Expand to all tables with column types </summary>
     
-### Fact
-
 | fact_vaccinations |  |
 |---|---|
 | vaccination_sk | text |
@@ -21,8 +19,6 @@ The model is comprised of one fact table for *vaccinations* and dimensions for *
 | city_sk | text |
 | vaccination_date | timestamptz |
 | vaccinations_count | integer |
-
-#### Dimensions
 
 | dim_patients |  |
 |---|---|
