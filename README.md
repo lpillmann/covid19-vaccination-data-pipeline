@@ -7,7 +7,7 @@ This project implements an automated data pipeline to ingest and model COVID-19 
 ### Data sources
 Two data sources are used:
 - [Vaccinations: _Campanha Nacional de Vacinação contra Covid-19_ (API)](https://opendatasus.saude.gov.br/dataset/covid-19-vacinacao)
-- [Population: 2020 Brazilian census (curated CSV)](https://raw.githubusercontent.com/turicas/covid19-br/master/covid19br/data/populacao-por-municipio-2020.csv)
+- [Population: 2020 Brazilian census (curated CSV)](https://raw.githubusercontent.com/turicas/covid19-br/master/covid19br/data/populacao-por-municipio-2020.csv). Source: [IBGE](https://www.ibge.gov.br/), data treated and shared by Álvaro Justen/[Brasil.IO](https://brasil.io/)
 
 ### Data modeling
 
@@ -316,20 +316,9 @@ Open UI at [http://localhost:8080/home](http://localhost:8080/home) using login 
 >UDACITY_CAPSTONE_PROJECT_BUCKET: ${UDACITY_CAPSTONE_PROJECT_BUCKET}
 >```
 
-## Ad-hoc scripts
-### Extract population data
-Small CSV is extracted from a public GitHub repository and loaded into the project's S3 bucket.
-```
-bash dags/scripts/extract/population/run.sh
-```
-
-Population estimates by city (2020 census).
-
-> Source: [IBGE](https://www.ibge.gov.br/), data treated and shared by Álvaro Justen/[Brasil.IO](https://brasil.io/)
-
-## Notes and comments
-1. Not all Brazilian states are covered. Just a few were selected to use as an example. They amount to over 15 million rows in the fact table.
-1. A custom Airflow image was created to enable having a second Python installation on the container. This was needed to run the tap and target without conflicts with Airflow's main one.
+## Notes
+1. Not all Brazilian states are covered. Just a few were selected to use as an example. They amount to over 15 million rows in the fact table which fulfills the Udacity project requirements of 1 million.
+1. A custom Airflow image was created to enable having a second Python installation in the container. This was needed to run the tap and target without conflicts with Airflow's main one.
 1. A partitioned load approach is implemented and can be used in case of daily runs. For development purposes only the load all operator was used since the Redshift cluster was recreated every time. 
 
 ### Future work
@@ -343,6 +332,6 @@ These are some of the further improvements that can be made to the project:
   - [AWS Redshift](https://aws.amazon.com/redshift/?whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc) - Used as Data Warehouse
   - [AWS S3](https://aws.amazon.com/s3/) - Storage of data sources
   - [Singer](https://www.singer.io/) - Used as the standard to write the extraction systems
-  - [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) - Used to interact with AWS
+  - [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) - Used to interact with AWS in infrastructure-as-code scripts
 
 
