@@ -316,7 +316,7 @@ Open UI at [http://localhost:8080/home](http://localhost:8080/home) using login 
 
 ### Future work
 These are some of the further improvements that can be made to the project:
-- Change incremental extractions to be daily instead of monthly to reduce processing time
+- Change incremental extractions to be daily instead of monthly to reduce total execution time
 - Simplify `DataQualityOperator` usage by providing predefined tests (e.g. uniqueness, not null, etc)
 - Clean DAG definition by using default arguments more wisely
 
