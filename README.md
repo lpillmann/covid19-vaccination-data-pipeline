@@ -77,16 +77,6 @@ The output of the pipeline is a dimensional model comprised of one fact table fo
 | estimated_population | integer |
 | cropped_city_ibge_code | text |
 
-| dim_cities |  |
-|---|---|
-| city_sk | text |
-| state | text |
-| state_ibge_code | text |
-| city_ibge_code | text |
-| city | text |
-| estimated_population | integer |
-| cropped_city_ibge_code | text |
-
 | dim_calendar |  |
 |---|---|
 | full_date | timestamptz |
