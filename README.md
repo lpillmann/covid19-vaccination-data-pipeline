@@ -31,7 +31,7 @@ The output of the pipeline is a dimensional model comprised of one fact table fo
 | patient_sk | text | Unique identifier of the patient |
 | patient_id | text | Unique identifier of the patient (natural key) |
 | patient_age | integer | Age of the patient at the time of vaccination |
-| patient_birth_date | text | Birth date |
+| patient_birth_date | text | Birth date (some cleaning is needed to covert to date - use age instead) |
 | patient_biological_gender_enum | text | Gender acronym |
 | patient_skin_color_code | text | Skin color code |
 | patient_skin_color_value | text | Skin color description |
