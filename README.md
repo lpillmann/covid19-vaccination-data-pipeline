@@ -315,16 +315,17 @@ Open UI at [http://localhost:8080/home](http://localhost:8080/home) using login 
 1. A partitioned load approach by `year_month` and `state_abbrev` is implemented and can be used in case of daily runs. For development purposes only the load all operator was used since the Redshift cluster was recreated every time.
 1. The Vaccinations API uses Elasticsearch as engine. The developed tap made use of ES client libraries to enable easier interaction with the endpoints.
 
-## Addressing other scenarios
-- **The data was increased by 100x**. The expected impact would be the DAG taking longer to finish, mostly due to the extract step which is the bottleneck. A possible approach to compensate the longer duration would be partitioning and paralelizing the load using some other attribute such as `city` or `day` - currently the data is partitioned by `year_month` and `state_abbrev`.
-- **The pipelines would be run on a daily basis by 7 am every day**. The DAG is already implemented having a daily schedule in mind. For example, the extraction is done only for the latest `year_month` and the `CopyCsvToRedshiftPartionedOperator` is available to load only a specific partition (it is currenly commented, but it working fine). So the only change would be setting the schedule parameter and uncommenting this operator to be used for the vaccinations data.
-- **The database needed to be accessed by 100+ people**. In order to support such demand, Redshift cluster configuration would need to be changed. Specifically, the number of cluster would be increase and, depending on the load, their sizes would need to be increased as well.
 
 ### Future work
 These are some of the further improvements that can be made to the project:
 - Change incremental extractions to be daily instead of monthly to reduce total execution time (currently around 30 minutes)
 - Simplify `DataQualityOperator` usage by providing predefined tests (e.g. uniqueness, not null, etc)
 - Clean DAG definition by using default arguments more wisely
+
+## Addressing other scenarios
+- **The data was increased by 100x**. The expected impact would be the DAG taking longer to finish, mostly due to the extract step which is the bottleneck. A possible approach to compensate the longer duration would be partitioning and paralelizing the load using some other attribute such as `city` or `day` - currently the data is partitioned by `year_month` and `state_abbrev`.
+- **The pipelines would be run on a daily basis by 7 am every day**. The DAG is already implemented having a daily schedule in mind. For example, the extraction is done only for the latest `year_month` and the `CopyCsvToRedshiftPartionedOperator` is available to load only a specific partition (it is currenly commented, but it working fine). So the only change would be setting the schedule parameter and uncommenting this operator to be used for the vaccinations data.
+- **The database needed to be accessed by 100+ people**. In order to support such demand, Redshift cluster configuration would need to be changed. Specifically, the number of cluster would be increase and, depending on the load, their sizes would need to be increased as well.
 
 ## Built With
 
