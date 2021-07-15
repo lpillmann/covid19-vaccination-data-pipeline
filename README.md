@@ -226,7 +226,7 @@ from
 
 Q: _What types of vaccines are being applied?_
 ![Weekly vaccinations per type](./images/analysis-weekly-vaccinations-per-type.png)
-Comment: Coronavac was the main vaccine from the start up until June. Then, AztraZeneca became the major type being applied. We can observe the growth of Pfizer and Janssen in the most recent months. _Note: Contains only the data from states AC, MA, PE, PR, RS and SC._
+Comment: Coronavac was the main vaccine from the start up until June. Then, AstraZeneca became the major type being applied. We can observe the growth of Pfizer and Janssen in the most recent months. _Note: Contains only the data from states AC, MA, PE, PR, RS and SC._
 
 <details>
   <summary>Expand to see query used </summary>
