@@ -1,5 +1,5 @@
 # covid19-vaccination-data-pipeline
-Main repository for Udacity Data Engineering Nanodegree Capstone Project - COVID-19 Vaccination in Brazil.
+Main repository for [Udacity Data Engineering Nanodegree](https://www.udacity.com/course/data-engineer-nanodegree--nd027) Capstone Project - COVID-19 Vaccination in Brazil.
 
 ## Overview
 This project implements an automated data pipeline to ingest and model vaccination data from the Brazilian government.
