@@ -443,7 +443,7 @@ Open UI at [http://localhost:8080/home](http://localhost:8080/home) using login 
 ## Notes
 1. Not all Brazilian states are covered. Just a few were selected to use as an example. They amount to over 15 million rows in the fact table which fulfills the Udacity project requirement of 1 million.
 1. A custom Airflow image was created to enable having a second Python installation in the container. This was needed to run the tap and target without conflicts with Airflow's main one.
-1. Dag was left without schedule, since it was manually triggered during development. The suggested schedule to run in production would be `@daily`.
+1. The DAG was left without schedule, since it was manually triggered during development. The suggested schedule to run in production would be `@daily`.
 1. A partitioned load approach by `year_month` and `state_abbrev` is implemented and can be used in case of daily runs. For development purposes only the load all operator was used since the Redshift cluster was recreated every time.
 1. The Vaccinations API uses Elasticsearch as engine. The developed tap made use of ES client libraries to enable easier interaction with the endpoints.
 
