@@ -453,7 +453,7 @@ These are some of the further improvements that can be made to the project:
 - Change incremental extractions to be daily instead of monthly to reduce total execution time (currently around 30 minutes)
 - Perform further cleaning steps in stage layer to enable easier analysis queries (e.g. normalizing vaccine type names)
 - Simplify `DataQualityOperator` usage by providing predefined tests (e.g. uniqueness, not null, etc)
-- Clean DAG definition by using default arguments more wisely
+- Clean DAG definition by using default arguments in operators more wisely
 - Generalize infrastructure-as-code scripts and/or adopt YAML-based configuration instead of using Python, to enable higher reproducibility and customization
 
 ## Addressing other scenarios
