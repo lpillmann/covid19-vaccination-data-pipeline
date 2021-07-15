@@ -94,17 +94,17 @@ This structure enables answering questions such as:
 
 - Which states/cities present the best vaccination per capta?
 - How is the vaccination pace evolving over time?
-- How many vaccinations are being applied daily in Brazil?
-    - Breakdown by state, city, gender, age group, so on
-- What vaccines are being applied?
-    - Breakdown by manufacturer, type, etc
-- How many people are still left to be vaccinated?
+- What types of vaccines are being applied?
+- How many people are late to take the second dose?
 
 #### Example analyses
 The charts below were built using the dimensional model produced by the pipeline. Below each chart is the query used, for reference.
 
+<br>
 Q: _Which states present the best vaccination per capta?_
 ![Cumulative vaccinations per capta](./images/analysis-cumulative-vaccinations-per-capta.png)
+
+Comment: The state of Rio Grande do Sul (RS) is performing best among the six states evaluated by a significant margin.
 
 <details>
   <summary>Expand to see query used </summary>
@@ -165,8 +165,12 @@ from
 ```
 </details>
 
+
+<br>
 Q: _How is the vaccination pace evolving over time?_
 ![Cumulative vaccinations per capta](./images/analysis-daily-vaccinations-per-capta.png)
+Comment: Almost all six states present the same pattern of reducing the pace of vaccinations in June. This might be related to the vaccine production delays that have impacted the whole country during the period.
+
 
 <details>
   <summary>Expand to see query used </summary>
@@ -218,6 +222,138 @@ from
 ```
 </details>
 
+
+<br>
+Q: _What types of vaccines are being applied?_
+![Weekly vaccinations per type](./images/analysis-weekly-vaccinations-per-type.png)
+Comment: Coronavac was the main vaccine from the start up until June. Then, AztraZeneca became the major type being applied. We can observe the growth of Pfizer and Janssen in the most recent months. _Note: Contains only the data from states AC, MA, PE, PR, RS and SC._
+
+<details>
+  <summary>Expand to see query used </summary>
+
+
+```sql
+select
+    date_trunc('week', dca.full_date) as period,
+    
+    -- normalize vaccine type
+    case
+        when lower(dva.vaccine_type_name) like '%butantan%' then 'Coronavac'
+        when (lower(dva.vaccine_type_name) like '%astrazeneca%'
+              or lower(dva.vaccine_type_name) like '%covishield%') then 'AstraZeneca'
+        when lower(dva.vaccine_type_name) like '%pfizer%' then 'Pfizer'
+        when lower(dva.vaccine_type_name) like '%janssen%' then 'Janssen'
+        else dva.vaccine_type_name
+    end as vaccine_type,
+    
+    sum(fva.vaccinations_count) as total_vaccinations
+from
+    fact_vaccinations fva
+    inner join
+    dim_calendar dca on fva.vaccination_date = dca.full_date
+    inner join
+    dim_vaccines dva on fva.vaccine_sk = dva.vaccine_sk
+where
+    dva.vaccine_type_name != 'Pendente Identificação'  -- exclude not identified (<1%)
+group by
+    1,2
+```
+</details>
+
+
+<br>
+Q: _How many people are late to take the second dose?_
+![Late to 2nd dose Coronavac](./images/analysis-late-to-take-2nd-dose-coronavac.png)
+Comment: Around 370k patients have taken the first dose but are late to take the second. This represents 6.7% of the total patients who took Coronavac. _Note: Contains only the data from states AC, MA, PE, PR, RS and SC._
+
+
+<details>
+  <summary>Expand to see query used </summary>
+
+
+```sql
+with dim_vaccines_normalized as
+(
+    select
+        *,
+         -- normalize vaccine type
+        case
+            when lower(dva.vaccine_type_name) like '%butantan%' then 'Coronavac'
+            when (lower(dva.vaccine_type_name) like '%astrazeneca%'
+                  or lower(dva.vaccine_type_name) like '%covishield%') then 'AstraZeneca'
+            when lower(dva.vaccine_type_name) like '%pfizer%' then 'Pfizer'
+            when lower(dva.vaccine_type_name) like '%janssen%' then 'Janssen'
+            else dva.vaccine_type_name
+        end as vaccine_normalized_type
+    from
+        dim_vaccines dva
+),
+
+vaccinations_with_weeks_since_column as
+(
+    select
+        fva.*,
+        datediff(week, vaccination_date, current_date) as weeks_since_vaccination,
+        dva.vaccination_dose_description,
+        dva.vaccine_normalized_type
+    from
+        fact_vaccinations fva
+        inner join
+        dim_vaccines_normalized dva on fva.vaccine_sk = dva.vaccine_sk
+    where
+        dva.vaccine_normalized_type = 'Coronavac'
+    
+),
+
+patients_already_took_two_doses as
+(
+    select
+        patient_sk
+    from
+        vaccinations_with_weeks_since_column
+    group by
+        1
+    having
+        count(*) > 1
+),
+
+patients_who_took_only_first_and_are_late_to_take_2nd as
+(
+    select
+        *
+    from
+        vaccinations_with_weeks_since_column
+    where
+        weeks_since_vaccination >= 5  -- recommended interval is 4 weeks - tolerance of 1 more
+        and
+        vaccination_dose_description = '1ª Dose'
+        and
+        patient_sk not in (select patient_sk from patients_already_took_two_doses)
+),
+
+unioned as
+(
+    select 'All patients' as category, count(distinct patient_sk) as unique_patients_count from vaccinations_with_weeks_since_column
+    union all
+    select 'Already took 2 doses ', count(distinct patient_sk) from patients_already_took_two_doses
+    union all
+    select 'Late to take 2nd dose', count(distinct patient_sk) from patients_who_took_only_first_and_are_late_to_take_2nd
+
+),
+
+unioned_with_pct as
+(
+    select
+        *,
+        round(100*(unique_patients_count::float / max(unique_patients_count) over ()), 2) as pct_of_total
+    from
+        unioned
+)
+
+select * from unioned_with_pct
+order by 1
+```
+</details>
 
 
 ### Pipeline
