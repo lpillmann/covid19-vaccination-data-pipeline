@@ -218,7 +218,7 @@ with DAG(
                     count(*) > 1
             )
         """,
-        expected_result=0,
+        expected_result=0,  # There shouldn't exist any duplicated sk
     )
 
     assert_dim_patients_unique_patient_sk = DataQualityOperator(
@@ -238,7 +238,64 @@ with DAG(
                     count(*) > 1
             )
         """,
-        expected_result=0,
+        expected_result=0,  # There shouldn't exist any duplicated sk
+    )
+
+    assert_fact_vaccinations_not_null_vaccination_sk = DataQualityOperator(
+        task_id="assert_fact_vaccinations_not_null_vaccination_sk",
+        dag=dag,
+        conn_id="redshift",
+        sql_query="""
+            select count(*) from (
+                select
+                    vaccination_sk,
+                    count(*)
+                from
+                    fact_vaccinations
+                group by 
+                    1
+                having
+                    vaccination_sk is null
+            )
+        """,
+        expected_result=0,  # There shouldn't exist any null sk
+    )
+
+    assert_dim_patients_not_null_patient_sk = DataQualityOperator(
+        task_id="assert_dim_patients_not_null_patient_sk",
+        dag=dag,
+        conn_id="redshift",
+        sql_query="""
+            select count(*) from (
+                select
+                    patient_sk,
+                    count(*)
+                from
+                    dim_patients
+                group by 
+                    1
+                having
+                    patient_sk is null
+            )
+        """,
+        expected_result=0,  # There shouldn't exist any null sk
+    )
+
+    assert_fact_vaccinations_distinct_states_count = DataQualityOperator(
+        task_id="assert_fact_vaccinations_distinct_states_count",
+        dag=dag,
+        conn_id="redshift",
+        sql_query="""
+            select count(*) from (
+                select distinct
+                    dfa.facility_state_abbrev
+                from
+                    fact_vaccinations fva
+                    inner join
+                    dim_facilities dfa on fva.facility_sk = dfa.facility_sk
+            )
+        """,
+          expected_result=6,  # Data for only 6 states have been loaded
     )
 
     # Dependencies
@@ -266,7 +323,10 @@ with DAG(
         >> rebuild_completed
         >> [
             assert_fact_vaccinations_unique_vaccination_sk,
+            assert_fact_vaccinations_not_null_vaccination_sk,
             assert_dim_patients_unique_patient_sk,
+            assert_dim_patients_not_null_patient_sk,
+            assert_fact_vaccinations_distinct_states_count,
         ]
         >> data_quality_checks_completed
         >> execution_completed

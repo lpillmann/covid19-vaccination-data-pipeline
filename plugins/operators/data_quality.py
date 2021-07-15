@@ -21,6 +21,6 @@ class DataQualityOperator(BaseOperator):
         redshift_hook = PostgresHook(postgres_conn_id=self.conn_id)
         result = redshift_hook.get_records(self.sql_query)[0][0]
         assert (
-            result == 0
+            result == self.expected_result
         ), f"ERROR: Expected {self.expected_result} rows but got {result}"
         self.log.info("DataQualityOperator: Done")
