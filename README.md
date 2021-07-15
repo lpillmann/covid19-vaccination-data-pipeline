@@ -454,6 +454,7 @@ These are some of the further improvements that can be made to the project:
 - Perform further cleaning steps in stage layer to enable easier analysis queries (e.g. normalizing vaccine type names)
 - Simplify `DataQualityOperator` usage by providing predefined tests (e.g. uniqueness, not null, etc)
 - Clean DAG definition by using default arguments more wisely
+- Generalize infrastructure-as-code scripts and/or adopt YAML-based configuration instead of using Python, to enable higher reproducibility and customization
 
 ## Addressing other scenarios
 - **The data was increased by 100x**. The expected impact would be the DAG taking 100x longer to finish, mostly due to the extract step which is the bottleneck. A possible approach to compensate the longer duration would be partitioning and paralelizing the load using some other attribute such as `city`, `day` or `hour` - currently the data is partitioned by `year_month` and `state_abbrev`. The choice of new partitions or incremental criteria would depend on how the data increased (e.g. more events per day? More cities performing vaccinations? More attributes about each event?)
