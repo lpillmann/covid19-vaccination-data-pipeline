@@ -100,7 +100,7 @@ This structure enables answering questions such as:
 #### Example analyses
 The charts below were built using the dimensional model produced by the pipeline. Below each chart is the query used, for reference.
 
-<br>
+
 Q: _Which states present the best vaccination per capta?_
 ![Cumulative vaccinations per capta](./images/analysis-cumulative-vaccinations-per-capta.png)
 
@@ -166,7 +166,7 @@ from
 </details>
 
 
-<br>
+
 Q: _How is the vaccination pace evolving over time?_
 ![Cumulative vaccinations per capta](./images/analysis-daily-vaccinations-per-capta.png)
 Comment: Almost all six states present the same pattern of reducing the pace of vaccinations in June. This might be related to the vaccine production delays that have impacted the whole country during the period.
@@ -223,7 +223,7 @@ from
 </details>
 
 
-<br>
+
 Q: _What types of vaccines are being applied?_
 ![Weekly vaccinations per type](./images/analysis-weekly-vaccinations-per-type.png)
 Comment: Coronavac was the main vaccine from the start up until June. Then, AztraZeneca became the major type being applied. We can observe the growth of Pfizer and Janssen in the most recent months. _Note: Contains only the data from states AC, MA, PE, PR, RS and SC._
@@ -261,7 +261,7 @@ group by
 </details>
 
 
-<br>
+
 Q: _How many people are late to take the second dose?_
 ![Late to 2nd dose Coronavac](./images/analysis-late-to-take-2nd-dose-coronavac.png)
 Comment: Around 370k patients have taken the first dose but are late to take the second. This represents 6.7% of the total patients who took Coronavac. _Note: Contains only the data from states AC, MA, PE, PR, RS and SC._
@@ -443,7 +443,7 @@ Open UI at [http://localhost:8080/home](http://localhost:8080/home) using login 
 ## Notes
 1. Not all Brazilian states are covered. Just a few were selected to use as an example. They amount to over 15 million rows in the fact table which fulfills the Udacity project requirement of 1 million.
 1. A custom Airflow image was created to enable having a second Python installation in the container. This was needed to run the tap and target without conflicts with Airflow's main one.
-1. The DAG was left without schedule, since it was manually triggered during development. The suggested schedule to run in production would be `@daily`.
+1. Dag was left without schedule, since it was manually triggered during development. The suggested schedule to run in production would be `@daily`.
 1. A partitioned load approach by `year_month` and `state_abbrev` is implemented and can be used in case of daily runs. For development purposes only the load all operator was used since the Redshift cluster was recreated every time.
 1. The Vaccinations API uses Elasticsearch as engine. The developed tap made use of ES client libraries to enable easier interaction with the endpoints.
 
