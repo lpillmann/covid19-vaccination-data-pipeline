@@ -412,7 +412,7 @@ make create-cluster
 
 
 ### Airflow
-Airflow was configured using Docker following [this reference](https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html#running-airflow).
+Airflow was configured using Docker following [this reference](https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html).
 
 Build customized image:
 ```bash

@@ -1,4 +1,4 @@
-FROM apache/airflow
+FROM apache/airflow:2.1.1
 
 ENV DEBIAN_FRONTEND noninteractive
 
