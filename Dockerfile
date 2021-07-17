@@ -47,7 +47,7 @@ ENV PATH /home/airflow/.pyenv/versions/3.8.7/bin:${PATH}
 ENV PIP_USER false
 
 RUN /home/airflow/.pyenv/versions/3.8.7/bin/python -m venv venvs/tap-opendatasus \
-  && venvs/tap-opendatasus/bin/python -m pip install --no-cache-dir git+https://github.com/lpillmann/tap-opendatasus.git certifi
+  && venvs/tap-opendatasus/bin/python -m pip install --no-cache-dir git+https://github.com/lpillmann/tap-opendatasus.git
 
 RUN /home/airflow/.pyenv/versions/3.8.7/bin/python -m venv venvs/target-s3-csv \
   && venvs/target-s3-csv/bin/python -m pip install --no-cache-dir git+https://github.com/lpillmann/pipelinewise-target-s3-csv.git
