@@ -8,35 +8,51 @@
 
 set -e
 
-LOAD_MODE=$1
-
-# Set credentials
-AWS_KEY="$UDACITY_AWS_KEY"
-AWS_SECRET="$UDACITY_AWS_SECRET"
+load_mode=$1
 
 # Configure S3 path
-S3_BUCKET=$UDACITY_CAPSTONE_PROJECT_BUCKET
-BASE_BUCKET_PATH="raw/population"
-s3_uri="s3://$S3_BUCKET/$BASE_BUCKET_PATH/"
+s3_bucket=$UDACITY_CAPSTONE_PROJECT_BUCKET
+base_bucket_path="raw/population"
+s3_uri="s3://$s3_bucket/$base_bucket_path/"
 
 # Data source
-URL="https://raw.githubusercontent.com/turicas/covid19-br/master/covid19br/data/populacao-por-municipio-2020.csv"
-OUTPUT_FILENAME="population-by-city-2020.csv"
+source_url="https://raw.githubusercontent.com/turicas/covid19-br/master/covid19br/data/populacao-por-municipio-2020.csv"
+output_filename="population-by-city-2020.csv"
 
 # Download locally
-tmp_filepath="/tmp/$OUTPUT_FILENAME"
-wget --output-document "$tmp_filepath" "$URL"
+extract_csv() {
+    tmp_filepath="/tmp/$output_filename"
+    wget --output-document "$tmp_filepath" "$source_url"
+    /opt/airflow/venvs/awscli/bin/aws s3 cp "$tmp_filepath" "$s3_uri"
+}
 
-if [ "$LOAD_MODE" = "replace" ]
+if [ "$load_mode" = "replace" ]
 then
-    # Clean up S3 destination
+    # Move current files to trash that will be emptied at the end if execution succeeds
     remove_from_destination="$s3_uri"
-    echo "Replace mode: Removing current file at $remove_from_destination"
-    /opt/airflow/venvs/awscli/bin/aws s3 rm "$remove_from_destination" --include "*.csv*" --recursive
-fi
+    trash_destination="$remove_from_destination/trash/"
+    echo "Replace mode: moving existing file(s) to $trash_destination"
+    /opt/airflow/venvs/awscli/bin/aws s3 mv "$remove_from_destination" "$trash_destination" --include "*.csv*" --recursive
 
-# Load into S3
-/opt/airflow/venvs/awscli/bin/aws s3 cp "$tmp_filepath" "$s3_uri"
+    # Run tap and target
+    if extract_csv
+    then
+        # Remove trash contents
+        echo "Replace mode: emptying trash contents from $trash_destination"
+        /opt/airflow/venvs/awscli/bin/aws s3 rm "$trash_destination" --recursive
+    else
+        # Recover from trash
+        echo "Replace mode: abort removal due to execution error. Recovering from trash to $remove_from_destination"
+        if /opt/airflow/venvs/awscli/bin/aws s3 mv "$trash_destination" "$remove_from_destination" --include "*.csv*" --recursive
+        then
+            # Remove trash folder
+            /opt/airflow/venvs/awscli/bin/aws s3 rm "$trash_destination" --recursive
+        fi
+    fi
+else
+    # Run tap and target just adding new files to the destination
+    extract_csv
+fi
 
 # Remove tmp file
 rm $tmp_filepath
