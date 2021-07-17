@@ -31,7 +31,7 @@ then
     # Move current files to trash that will be emptied at the end if execution succeeds
     remove_from_destination="$s3_uri"
     trash_destination="$remove_from_destination/trash/"
-    echo "Replace mode: moving existing file(s) to $trash_destination"
+    echo "Replace mode: moving existing file(s) to trash at $trash_destination"
     /opt/airflow/venvs/awscli/bin/aws s3 mv "$remove_from_destination" "$trash_destination" --include "*.csv*" --recursive
 
     # Run tap and target
