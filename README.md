@@ -412,7 +412,7 @@ make create-cluster
 
 
 ### Airflow
-Airflow was configured using Docker following [this reference](https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html). Make sure you provide at least 4 GB of RAM for your containers.
+Airflow was configured using Docker following [this reference](https://airflow.apache.org/docs/apache-airflow/stable/start/docker.html). Make sure you provide enough resources for your containers (at least 4 CPU cores and 4 GB of RAM).
 
 Build customized image:
 ```bash
