@@ -1,3 +1,4 @@
+import calendar
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -15,8 +16,17 @@ from operators import (
 )
 
 SCRIPTS_BASE_PATH = "/opt/airflow/dags/scripts"
+CURRENT_DATE = datetime.now().strftime("%Y-%m-%d")
 CURRENT_YEAR_MONTH = datetime.now().strftime("%Y-%m-01")
 STATE_ABBREVIATIONS = ["AC", "MA", "PE", "PR", "RS", "SC"]
+
+
+def is_month_end_date() -> bool:
+    """Returns True if current date is the last day of the month"""
+    year, month, _ = CURRENT_YEAR_MONTH.split("-")
+    _, last_day = calendar.monthrange(int(year), int(month))
+    return f"{year}-{month}-{last_day}" == CURRENT_DATE
+
 
 # These args will get passed on to each operator
 # You can override them on a per-task basis during operator initialization
@@ -70,11 +80,12 @@ with DAG(
     extraction_tasks = []
     for state_abbrev in STATE_ABBREVIATIONS:
         script_path = f"{SCRIPTS_BASE_PATH}/extract/vaccinations/run.sh"
-        month_year = CURRENT_YEAR_MONTH
+        year_month = CURRENT_YEAR_MONTH
+        load_mode = 'replace' if is_month_end_date() else ''  # Full reload on the last day of the month
         extract_opendatasus = BashOperator(
             task_id=f"extract_opendatasus_{state_abbrev}",
             dag=dag,
-            bash_command=f"{script_path} {month_year} {state_abbrev} replace ",
+            bash_command=f"{script_path} {year_month} {state_abbrev} {load_mode} ",
         )
         extraction_tasks.append(extract_opendatasus)
 

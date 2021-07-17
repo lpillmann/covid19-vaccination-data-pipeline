@@ -26,12 +26,12 @@ extract_vaccinations_path="$root_path/dags/scripts/extract/vaccinations"
 
 # Catalog and state won't change across tasks
 catalog_json_filepath="$extract_vaccinations_path/catalog.json"
-state_json_filepath="$extract_vaccinations_path/state.json"
 
-# Configs will vary across tasks
+# Configs and state will vary across tasks
 config_path="$extract_vaccinations_path/$state_abbrev"
 mkdir -p "$config_path"
 
+state_json_filepath="$config_path/state.json"
 tap_config_json_filepath="$config_path/opendatasus_config.json"
 target_config_json_filepath="$config_path/s3_csv_config.json"
 target_config_json_filepath="$config_path/s3_csv_config.json"
@@ -42,7 +42,6 @@ tap_config_json=$( jq -n \
                   --arg sa "$state_abbrev" \
                   '{disable_collection: true, year_month: $ym, state_abbrev: $sa}' )
 
-# S3 CSV
 target_config_json=$( jq -n \
                   --arg ak "$aws_key" \
                   --arg ae "$aws_secret" \
@@ -62,12 +61,18 @@ run_tap_target() {
 }
 
 if [ "$load_mode" = "replace" ]
-then
+then   
     # Move current files to trash that will be emptied at the end if execution succeeds
     remove_from_destination="s3://$s3_bucket/$s3_prefix"
     trash_destination="$remove_from_destination/trash/"
     echo "Replace mode: moving existing file(s) to $trash_destination"
     /opt/airflow/venvs/awscli/bin/aws s3 mv "$remove_from_destination" "$trash_destination" --include "*.csv*" --recursive
+
+    # Set tap state to null, so that extraction begins on the first day of the month
+    null_state_json=$( jq -n \
+                  '{"bookmarks": {"vaccinations": {"state_abbrev_from_date": null}}, "currently_syncing": null}' )
+
+    echo $null_state_json > "$state_json_filepath"
 
     # Run tap and target
     if run_tap_target
