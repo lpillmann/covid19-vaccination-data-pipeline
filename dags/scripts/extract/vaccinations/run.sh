@@ -7,9 +7,12 @@
 
 set -e
 
-year_month=$1
+extract_until_date=$1
 state_abbrev=$2
 load_mode=$3
+
+# Prepare year_month value to use as partition identifier
+year_month="${extract_until_date::-3}-01"
 
 # Set credentials
 aws_key="$AWS_ACCESS_KEY_ID"
@@ -40,7 +43,8 @@ target_config_json_filepath="$config_path/s3_csv_config.json"
 tap_config_json=$( jq -n \
                   --arg ym "$year_month" \
                   --arg sa "$state_abbrev" \
-                  '{disable_collection: true, year_month: $ym, state_abbrev: $sa}' )
+                  --arg ed "$extract_until_date" \
+                  '{disable_collection: true, year_month: $ym, state_abbrev: $sa, extract_until_date: $ed}' )
 
 target_config_json=$( jq -n \
                   --arg ak "$aws_key" \
