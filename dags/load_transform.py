@@ -1,10 +1,8 @@
-import calendar
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from airflow import DAG
 
 from airflow.operators.dummy import DummyOperator
-from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
 
 # Custom operators

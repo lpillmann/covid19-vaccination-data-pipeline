@@ -7,13 +7,6 @@ from airflow.operators.dummy import DummyOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
 
-# Custom operators
-from operators import (
-    CopyCsvToRedshiftOperator,
-    CopyCsvToRedshiftPartionedOperator,
-    RedshiftQueryOperator,
-    DataQualityOperator,
-)
 
 SCRIPTS_BASE_PATH = "/opt/airflow/dags/scripts"
 CURRENT_DATE = datetime.now().strftime("%Y-%m-%d")
