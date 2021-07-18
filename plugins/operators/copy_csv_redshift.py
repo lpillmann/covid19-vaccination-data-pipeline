@@ -6,7 +6,15 @@ class CopyCsvToRedshiftOperator(BaseOperator):
     ui_color = "#fcc379"
 
     def __init__(
-        self, conn_id, table_name, s3_from_path, iam_role, region, compression, max_errors_tolerance, **kwargs
+        self,
+        conn_id,
+        table_name,
+        s3_from_path,
+        iam_role,
+        region,
+        compression,
+        max_errors_tolerance,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.conn_id = conn_id

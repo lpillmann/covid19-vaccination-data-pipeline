@@ -44,7 +44,7 @@ with DAG(
 
     # Macro steps
     begin_execution = DummyOperator(task_id="begin_execution", dag=dag)
-    
+
     extraction_completed = DummyOperator(task_id="extraction_completed", dag=dag)
     execution_completed = DummyOperator(task_id="execution_completed", dag=dag)
 
@@ -54,7 +54,9 @@ with DAG(
     extraction_tasks = []
     for state_abbrev in STATE_ABBREVIATIONS:
         script_path = f"{SCRIPTS_BASE_PATH}/extract/vaccinations/run.sh"
-        load_mode = 'replace' if is_month_end_date() else ''  # Do a full reload on the last day of the month
+        load_mode = (
+            "replace" if is_month_end_date() else ""
+        )  # Do a full reload on the last day of the month
         extract_opendatasus = BashOperator(
             task_id=f"extract_opendatasus_{state_abbrev}",
             dag=dag,
@@ -72,9 +74,4 @@ with DAG(
     # extraction_tasks.append(extract_population)
 
     # Dependencies
-    (
-        begin_execution
-        >> extraction_tasks
-        >> extraction_completed
-        >> execution_completed
-    )
+    (begin_execution >> extraction_tasks >> extraction_completed >> execution_completed)
