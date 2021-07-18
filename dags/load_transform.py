@@ -15,19 +15,6 @@ from operators import (
     DataQualityOperator,
 )
 
-SCRIPTS_BASE_PATH = "/opt/airflow/dags/scripts"
-CURRENT_DATE = datetime.now().strftime("%Y-%m-%d")
-CURRENT_YEAR_MONTH = datetime.now().strftime("%Y-%m-01")
-STATE_ABBREVIATIONS = ["AC", "MA", "PE", "PR", "RS", "SC"]
-
-
-def is_month_end_date() -> bool:
-    """Returns True if current date is the last day of the month"""
-    year, month, _ = CURRENT_YEAR_MONTH.split("-")
-    _, last_day = calendar.monthrange(int(year), int(month))
-    return f"{year}-{month}-{last_day}" == CURRENT_DATE
-
-
 # These args will get passed on to each operator
 # You can override them on a per-task basis during operator initialization
 default_args = {
@@ -38,25 +25,12 @@ default_args = {
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(seconds=30),
-    # 'queue': 'bash_queue',
-    # 'pool': 'backfill',
-    # 'priority_weight': 10,
-    # 'end_date': datetime(2016, 1, 1),
-    # 'wait_for_downstream': False,
-    # 'dag': dag,
-    # 'sla': timedelta(hours=2),
-    # 'execution_timeout': timedelta(seconds=300),
-    # 'on_failure_callback': some_function,
-    # 'on_success_callback': some_other_function,
-    # 'on_retry_callback': another_function,
-    # 'sla_miss_callback': yet_another_function,
-    # 'trigger_rule': 'all_success'
 }
 with DAG(
-    "capstone",
+    "load_transform",
     default_args=default_args,
-    description="The DAG for the Capstone Project",
-    schedule_interval=None,  # timedelta(days=1),
+    description="The DAG to load and transform the data using Redshift",
+    schedule_interval="30 0 * * *",
     start_date=days_ago(0),
     tags=["udacity"],
 ) as dag:
@@ -66,36 +40,12 @@ with DAG(
     create_raw_tables_completed = DummyOperator(
         task_id="create_raw_tables_completed", dag=dag
     )
-    extraction_completed = DummyOperator(task_id="extraction_completed", dag=dag)
     load_raw_completed = DummyOperator(task_id="load_raw_completed", dag=dag)
     rebuild_completed = DummyOperator(task_id="rebuild_completed", dag=dag)
     data_quality_checks_completed = DummyOperator(
         task_id="data_quality_checks_completed", dag=dag
     )
     execution_completed = DummyOperator(task_id="execution_completed", dag=dag)
-
-    # Extract data from different sources to S3
-
-    # Open Data SUS (vaccinations) - paralelize extraction by Brazilian states
-    extraction_tasks = []
-    for state_abbrev in STATE_ABBREVIATIONS:
-        script_path = f"{SCRIPTS_BASE_PATH}/extract/vaccinations/run.sh"
-        year_month = CURRENT_YEAR_MONTH
-        load_mode = 'replace' if is_month_end_date() else ''  # Full reload on the last day of the month
-        extract_opendatasus = BashOperator(
-            task_id=f"extract_opendatasus_{state_abbrev}",
-            dag=dag,
-            bash_command=f"{script_path} {year_month} {state_abbrev} {load_mode} ",
-        )
-        extraction_tasks.append(extract_opendatasus)
-
-    # Population data from curated source (CSV hosted in GitHub)
-    extract_population = BashOperator(
-        task_id=f"extract_population",
-        dag=dag,
-        bash_command=f"{SCRIPTS_BASE_PATH}/extract/population/run.sh replace ",
-    )
-    extraction_tasks.append(extract_population)
 
     # Create raw tables to receive data from S3
     create_raw_population = RedshiftQueryOperator(
@@ -312,8 +262,6 @@ with DAG(
     # Dependencies
     (
         begin_execution
-        >> extraction_tasks
-        >> extraction_completed
         >> [
             create_raw_population,
             create_raw_vaccinations,
