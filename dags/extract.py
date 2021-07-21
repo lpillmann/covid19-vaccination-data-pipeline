@@ -44,7 +44,6 @@ with DAG(
 
     # Macro steps
     begin_execution = DummyOperator(task_id="begin_execution", dag=dag)
-
     extraction_completed = DummyOperator(task_id="extraction_completed", dag=dag)
     execution_completed = DummyOperator(task_id="execution_completed", dag=dag)
 
